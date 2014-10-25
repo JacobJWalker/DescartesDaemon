@@ -1,14 +1,10 @@
 Pre-Seeding (Or Kickstart) That Needs Fixing
 
+The following are problems that are still in 0.0.11 despite trying to fix them from the 0.0.10 version
 * Language
 * Country
 * Keyboard Layout (Detect)
 * Keyboard Layout
 * Keyboard Specific Layout
-
-* Encrypt Home Directory
 * Mounted Partitions
-* Partitioning Method
-* Select Disk Partition
-* HTTP Proxy
-* Finish Installation
+* Encrypt Home Directory

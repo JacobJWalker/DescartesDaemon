@@ -75,6 +75,9 @@ d-i partman/confirm_nooverwrite boolean true
 # if no other operating system is detected on the machine.
 d-i grub-installer/only_debian boolean true
 
+# Set to true if you want to encrypt the first user's home directory.
+d-i user-setup/encrypt-home boolean false
+
 ### Mirror settings
 # If you select ftp, the mirror/country string does not need to be set.
 #d-i mirror/protocol string ftp
