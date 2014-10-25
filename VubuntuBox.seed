@@ -1,4 +1,6 @@
 # VubuntuBox Seed File to Automatically Install VubuntuBox with no prompting
+# Unmounts File System
+d-i preseed/early_command string sleep 45 && umount /media &
 
 # Preseeding only locale sets language, country and locale.
 d-i debian-installer/locale string en_US
@@ -51,7 +53,7 @@ d-i clock-setup/ntp boolean true
 partman-basicfilesystems partman/automount boolean false
 partman-base partman/filter_mounted boolean true
 partman-base	partman/unmount_active	boolean	true
-d-i preseed/early_command string umount /media
+
 
 # Automatically Do Regular Partitioning
 d-i partman-auto/method string regular
