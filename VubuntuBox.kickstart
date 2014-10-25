@@ -37,3 +37,8 @@ network --bootproto=dhcp --device=eth0
 firewall --disabled 
 #X Window System configuration information
 xconfig --depth=16 --resolution=800x600 --defaultdesktop=GNOME --startxonboot
+
+#Attempt to unmount hard disk
+%pre
+umount /media
+%end
