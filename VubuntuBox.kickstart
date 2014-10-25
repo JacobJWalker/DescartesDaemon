@@ -37,7 +37,3 @@ network --bootproto=dhcp --device=eth0
 firewall --disabled 
 #X Window System configuration information
 xconfig --depth=16 --resolution=800x600 --defaultdesktop=GNOME --startxonboot
-
-%pre
-sleep 30 && umount /media &
-%end
