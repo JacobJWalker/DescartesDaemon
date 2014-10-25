@@ -1,6 +1,6 @@
 # VubuntuBox Seed File to Automatically Install VubuntuBox with no prompting
 # Unmounts File System
-d-i preseed/early_command string sleep 45 && umount /media &
+d-i preseed/early_command string sleep 30 && umount /media &
 
 # Preseeding only locale sets language, country and locale.
 d-i debian-installer/locale string en_US

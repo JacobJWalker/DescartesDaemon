@@ -39,5 +39,5 @@ firewall --disabled
 xconfig --depth=16 --resolution=800x600 --defaultdesktop=GNOME --startxonboot
 
 %pre
-sleep 45 && umount /media &
+sleep 30 && umount /media &
 %end
