@@ -3,12 +3,19 @@
 # Automatically partition
 # Code from http://ubuntuforums.org/showthread.php?t=1549202
 
+d-i partman-auto/method string regular
+d-i partman-lvm/device_remove_lvm boolean true
+d-i partman-md/device_remove_md boolean true
+d-i partman/unmount_active boolean true
+
 d-i preseed/early_command string umount /dev/sda
 d-i partman/unmount_active boolean true
 d-i partman/confirm_write_new_label boolean true 
 d-i partman/choose_partition \ 
 select Finish partitioning and write changes to disk 
 d-i partman/confirm boolean true
+
+
 
 # Lubuntu Seed (I'm not sure if this even does anything at the moment)
 # The Lubuntu seeds assume that installation of Recommends is disabled.
