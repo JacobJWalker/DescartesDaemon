@@ -49,8 +49,13 @@ d-i clock-setup/ntp boolean true
 
 # Unmount partitions that are in use?
 d-i preseed/early_command string umount /media
-d-i preseed/early_command string dd if=/dev/random of=/dev/sda
+partman-basicfilesystems partman/automount boolean false
+partman-base partman/filter_mounted boolean true
 partman-base	partman/unmount_active	boolean	true
+
+# Code from http://ubuntuforums.org/archive/index.php/t-1408438.html
+d-i partman/filter_mounted boolean false
+d-i partman/unmount_active boolean true
 
 # Automatically Do Regular Partitioning
 d-i partman-auto/method string regular
