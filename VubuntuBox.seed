@@ -1,16 +1,75 @@
-# VubuntuBox Seed File to work in Conjunction with Kickstart File
+# VubuntuBox Seed File to Automatically Install VubuntuBox with no prompting
+
+# Preseeding only locale sets language, country and locale.
+d-i debian-installer/locale string en_US
+
+# Keyboard selection.
+# keymap is an alias for keyboard-configuration/xkb-keymap
+d-i keymap select us
+
+# netcfg will choose an interface that has link if possible. This makes it
+# skip displaying a list if there is more than one interface.
+d-i netcfg/choose_interface select auto
+
+# Any hostname and domain names assigned from dhcp take precedence over
+# values set here. However, setting the values still prevents the questions
+# from being shown, even if values come from dhcp.
+d-i netcfg/get_hostname string unassigned-hostname
+d-i netcfg/get_domain string unassigned-domain
+
+# Create a normal user account now?
+user-setup-udeb	passwd/make-user	boolean	true
+
+# Full name for the new user:
+# user-setup-udeb	passwd/user-fullname	string	VubuntuBox Admin
+d-i passwd/user-fullname string VubuntuBox Admin
+
+# Username for your account:
+# user-setup-udeb	passwd/username	string	vubuntubox
+d-i passwd/username string vubuntubox
+
+# Normal user's password, in clear text
+d-i passwd/user-password password VubuntuBox
+d-i passwd/user-password-again password VubuntuBox
+
+# Controls whether or not the hardware clock is set to UTC.
+d-i clock-setup/utc boolean false
+
+# You may set this to any valid setting for $TZ; see the contents of
+# /usr/share/zoneinfo/ for valid values.
+d-i time/zone string US/Pacific
+
+# Controls whether to use NTP to set the clock during the install
+d-i clock-setup/ntp boolean true
+
+
+
+# Unmount partitions that are in use?
+partman-base	partman/unmount_active	boolean	true
 
 # Automatically partition
 # Code from http://ubuntuforums.org/showthread.php?t=1549202
 
-# d-i preseed/early_command string umount /dev/sda
-d-i preseed/early_command string dd if=/dev/zero of=/dev/sda bs=512 count=1 conv=notrunc 
-d-i partman/unmount_active boolean true
-d-i partman/confirm_write_new_label boolean true 
-d-i partman/choose_partition \ 
-select Finish partitioning and write changes to disk 
+d-i partman/confirm_write_new_label boolean true
+d-i partman/choose_partition select Finish partitioning and write changes to disk
 d-i partman/confirm boolean true
 
+# This makes partman automatically partition without confirmation, provided
+# that you told it what to do using one of the methods above.
+d-i partman-partitioning/confirm_write_new_label boolean true
+d-i partman/choose_partition select finish
+d-i partman/confirm boolean true
+d-i partman/confirm_nooverwrite boolean true
+
+# Other Attempts at avoiding mounting error
+# d-i preseed/early_command string umount /dev/sda
+# d-i preseed/early_command string dd if=/dev/zero of=/dev/sda bs=512 count=1 conv=notrunc 
+# d-i partman/unmount_active boolean true
+
+
+# This is fairly safe to set, it makes grub install automatically to the MBR
+# if no other operating system is detected on the machine.
+d-i grub-installer/only_debian boolean true
 
 
 # Lubuntu Seed (I'm not sure if this even does anything at the moment)
