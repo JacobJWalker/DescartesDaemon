@@ -1,7 +1,7 @@
 # VubuntuBox Seed File to Automatically Install VubuntuBox with no prompting
 # Unmounts File System
 # Idea from Mate Lakat, http://matelakat.blogspot.com/2014/05/ubuntu-installer-unmount-partitions.html
-d-i preseed/early_command string /bin/bash -c "while grep /media /proc/mounts; do umount /media || true; sleep 1; done;"
+d-i preseed/early_command string while grep /media /proc/mounts; do umount /media || true; sleep 1; done;
 
 # Preseeding only locale sets language, country and locale.
 d-i debian-installer/locale string en_US
