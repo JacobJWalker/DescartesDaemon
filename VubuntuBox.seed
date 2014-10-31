@@ -1,8 +1,4 @@
 # VubuntuBox Seed File to Automatically Install VubuntuBox with no prompting
-# Unmounts File System
-# Destroy first bit of hard disk to stop it from being mounted later.  
-# This is brute force, but the disk is going to be blown away anyways, so why not?
-d-i preseed/early_command string dd if=/dev/zero of=/dev/sda dd bs=512 count=1
 
 # Preseeding only locale sets language, country and locale.
 d-i debian-installer/locale string en_US

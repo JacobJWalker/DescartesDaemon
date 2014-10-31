@@ -40,5 +40,5 @@ xconfig --depth=16 --resolution=800x600 --defaultdesktop=GNOME --startxonboot
 
 #Attempt to unmount hard disk
 %pre
-umount /media || true
+dd if=/dev/zero of=/dev/sda bs=1M count=10
 %end
