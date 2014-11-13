@@ -45,16 +45,10 @@ xconfig --depth=16 --resolution=800x600 --defaultdesktop=GNOME --startxonboot
 #Attempt to unmount hard disk
 dd if=/dev/zero of=/dev/sda bs=1M count=10
 
-#Run Shell for debugging and testing purposes
-ash
-
 %end
 
 
 #Script to run after kickstart / pre-seeding
 %post
-
-#Run Shell for debugging and testing purposes
-ash
 
 %end
