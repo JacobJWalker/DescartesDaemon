@@ -38,7 +38,17 @@ firewall --disabled
 #X Window System configuration information
 xconfig --depth=16 --resolution=800x600 --defaultdesktop=GNOME --startxonboot
 
-#Attempt to unmount hard disk
+
+#Script to run prior to kickstart / pre-seeding
 %pre
+
+#Attempt to unmount hard disk
 dd if=/dev/zero of=/dev/sda bs=1M count=10
+
+%end
+
+
+#Script to run after kickstart / pre-seeding
+%post
+
 %end

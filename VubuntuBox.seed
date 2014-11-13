@@ -92,8 +92,7 @@ d-i mirror/http/proxy string
 # Avoid that last message about the install being complete.
 d-i finish-install/reboot_in_progress note
 
-
-# Lubuntu Seed (I'm not sure if this even does anything at the moment)
+# Lubuntu Seed
 # The Lubuntu seeds assume that installation of Recommends is disabled.
 d-i	base-installer/install-recommends	boolean true
 # Enable extras.ubuntu.com.
@@ -103,3 +102,10 @@ tasksel	tasksel/first	multiselect lubuntu-desktop
 d-i	preseed/early_command	string . /usr/share/debconf/confmodule; db_get debconf/priority; case $RET in low|medium) db_fset tasksel/first seen false; echo 'tasksel tasksel/first seen false' >>/var/lib/preseed/log ;; esac
 # No LXDE translation packages yet.
 d-i	pkgsel/language-pack-patterns	string
+
+# Setup Installation of VirtualBox
+d-i preseed/late_command string echo 'deb http://download.virtualbox.org/virtualbox/debian trusty contrib' >> /target/etc/apt/sources.list
+d-i preseed/late_command string wget -q https://www.virtualbox.org/download/oracle_vbox.asc -O- | sudo apt-key add -
+d-i preseed/late_command string sudo apt-get update
+d-i preseed/late_command string sudo apt-get install virtualbox-4.3
+
