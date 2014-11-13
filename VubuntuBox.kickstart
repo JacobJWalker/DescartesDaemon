@@ -46,7 +46,7 @@ xconfig --depth=16 --resolution=800x600 --defaultdesktop=GNOME --startxonboot
 dd if=/dev/zero of=/dev/sda bs=1M count=10
 
 #Run Shell for debugging and testing purposes
-bash
+ash
 
 %end
 
@@ -55,6 +55,6 @@ bash
 %post
 
 #Run Shell for debugging and testing purposes
-bash
+ash
 
 %end
