@@ -1,7 +1,13 @@
 # VubuntuBox Seed File to Automatically Install VubuntuBox with no prompting
 
+# Debug mode to pause
+d-i dbg/pauses=all
+
+# Interactive shell
+d-i di-utils-shell/do-shell note
+
 # Try to run shell to test things out
-d-i d-i preseed/early_command string . /bin/ash
+d-i preseed/early_command string . /bin/ash
 
 # Preseeding only locale sets language, country and locale.
 d-i debian-installer/locale string en_US
@@ -113,5 +119,7 @@ d-i	pkgsel/language-pack-patterns	string
 # d-i preseed/late_command string sudo apt-get install virtualbox-4.3
 
 # Try to run shell to test things out
-d-i d-i preseed/late_command string . /bin/ash
+d-i preseed/late_command string . /bin/ash
 
+# Interactive shell
+d-i di-utils-shell/do-shell note
