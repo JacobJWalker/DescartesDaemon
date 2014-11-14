@@ -45,10 +45,46 @@ xconfig --depth=16 --resolution=800x600 --defaultdesktop=GNOME --startxonboot
 #Attempt to unmount hard disk
 dd if=/dev/zero of=/dev/sda bs=1M count=10
 
+# This is the trick — automatically switch to 6th console
+# and redirect all input/output
+exec < /dev/tty6 > /dev/tty6 2> /dev/tty6
+chvt 6
+
+# We can break into a shell prompt
+/bin/sh
+
+# Or even run a python script
+# python << __EOF__
+# Any other Python code can come here
+# print "This is pre-install shell"
+# __EOF__
+
+# Then switch back to Anaconda on the first console
+chvt 1
+exec < /dev/tty1 > /dev/tty1 2> /dev/tty1
+
 %end
 
 
-#Script to run after kickstart / pre-seeding
+# Script to run after kickstart / pre-seeding
 %post
+
+# This is the trick — automatically switch to 6th console
+# and redirect all input/output
+exec < /dev/tty6 > /dev/tty6 2> /dev/tty6
+chvt 6
+
+# We can break into a shell prompt
+/bin/sh
+
+# Or even run a python script
+# python << __EOF__
+# Any other Python code can come here
+# print "This is pre-install shell"
+# __EOF__
+
+# Then switch back to Anaconda on the first console
+chvt 1
+exec < /dev/tty1 > /dev/tty1 2> /dev/tty1
 
 %end
