@@ -63,17 +63,30 @@ exec < /dev/tty1 > /dev/tty1 2> /dev/tty1
 # --------------------------------------------
 %post
 
+# Changes to Virtual Terminal 6 so that output will display properly and can be interactive
+# From http://hintshop.ludvig.co.nz/show/interactive-pre-post-install-scripts-redhat-kickstart/
+exec < /dev/tty6 > /dev/tty6 2> /dev/tty6
+chvt 6
+
 # Install VirtualBox from its Repository
 echo 'deb http://download.virtualbox.org/virtualbox/debian trusty contrib' >> /etc/apt/sources.list
 wget -q https://www.virtualbox.org/download/oracle_vbox.asc -O- | apt-key add -
 apt-get update
 apt-get install virtualbox-4.3 -y
 
+# Fixes Kernel driver not installed problem
+# From http://www.binarytides.com/fix-vbox-kernel-driver-error/
+apt-get install build-essential module-assistant -y
+m-a prepare
+/etc/init.d/vboxdrv setup
+
+
 # Start an interactive shell for debugging purposes
-# From http://hintshop.ludvig.co.nz/show/interactive-pre-post-install-scripts-redhat-kickstart/
-exec < /dev/tty6 > /dev/tty6 2> /dev/tty6
-chvt 6
 /bin/sh
+
+
+# Change back to Virtual Terminal 1 where the Install has been running
+# From http://hintshop.ludvig.co.nz/show/interactive-pre-post-install-scripts-redhat-kickstart/
 chvt 1
 exec < /dev/tty1 > /dev/tty1 2> /dev/tty1
 
