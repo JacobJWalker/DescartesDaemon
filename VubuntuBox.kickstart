@@ -43,8 +43,9 @@ xconfig --depth=16 --resolution=800x600 --defaultdesktop=GNOME --startxonboot
 # ----------------------------------------------
 %pre
 
-# Attempt to unmount hard disk
-# dd if=/dev/zero of=/dev/sda bs=1M count=10
+# Automatically erases part of existing operating system, so that it avoids the confirmation dialogue about the drive being mounted
+# See https://bugs.launchpad.net/ubuntu/+source/debian-installer/+bug/1370315
+dd if=/dev/zero of=/dev/sda bs=1M count=10
 
 # Start an interactive shell for debugging purposes
 # From http://hintshop.ludvig.co.nz/show/interactive-pre-post-install-scripts-redhat-kickstart/
