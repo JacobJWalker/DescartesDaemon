@@ -14,7 +14,7 @@ timezone America/Los_Angeles
 #Root password
 rootpw --disabled
 #Initial user
-user vubuntubox --fullname "VubuntuBox Admin" --iscrypted --password $1$PhGr1JT6$V2qyBpenDSVlhreBxk4Z.0
+user vbadmin --fullname "VubuntuBox Admin" --iscrypted --password $1$PhGr1JT6$V2qyBpenDSVlhreBxk4Z.0
 #Reboot after installation
 reboot
 #Use text mode install
@@ -47,14 +47,24 @@ xconfig --depth=16 --resolution=800x600 --defaultdesktop=GNOME --startxonboot
 # See https://bugs.launchpad.net/ubuntu/+source/debian-installer/+bug/1370315
 dd if=/dev/zero of=/dev/sda bs=1M count=10
 
-# Start an interactive shell for debugging purposes
+# Changes to Virtual Terminal 6 so that output will display properly and can be interactive
 # From http://hintshop.ludvig.co.nz/show/interactive-pre-post-install-scripts-redhat-kickstart/
 exec < /dev/tty6 > /dev/tty6 2> /dev/tty6
 chvt 6
+
+# Get URL to be used to download Virtual Image file at the end of the installation
+echo "VubuntuBox will download a virtual image after installing itself."
+echo "It can use http, https, ftp, or smb (windows file sharing)"
+echo "It will use either wget or smbget.  Read their documentation for more info."
+read -p "Enter the full URL of the Virtual Image." VirtualImageURL
+
+# Start an interactive shell for debugging purposes
 /bin/sh
+
+# Change back to Virtual Terminal 1 where the Install has been running
+# From http://hintshop.ludvig.co.nz/show/interactive-pre-post-install-scripts-redhat-kickstart/
 chvt 1
 exec < /dev/tty1 > /dev/tty1 2> /dev/tty1
-
 %end
 
 
@@ -68,6 +78,13 @@ exec < /dev/tty1 > /dev/tty1 2> /dev/tty1
 exec < /dev/tty6 > /dev/tty6 2> /dev/tty6
 chvt 6
 
+# Adds VBAdmin User
+adduser vbadmin --disabled-password -gecos "VirtualBox Admin"
+echo VubuntuBox | passwd vbadmin --stdin
+
+# Adds the GuestOS User
+adduser guestos --disabled-password --gecos "Guest OS"
+
 # Install VirtualBox from its Repository
 echo 'deb http://download.virtualbox.org/virtualbox/debian trusty contrib' >> /etc/apt/sources.list
 wget -q https://www.virtualbox.org/download/oracle_vbox.asc -O- | apt-key add -
@@ -80,9 +97,12 @@ apt-get install build-essential module-assistant -y
 m-a prepare
 /etc/init.d/vboxdrv setup
 
+# Download Virtual Image from $VirtualImageURL
+smbget 
+
 
 # Start an interactive shell for debugging purposes
-/bin/sh
+/bin/bash
 
 
 # Change back to Virtual Terminal 1 where the Install has been running

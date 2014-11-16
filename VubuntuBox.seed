@@ -31,7 +31,7 @@ d-i passwd/user-fullname string VubuntuBox Admin
 
 # Username for your account:
 # user-setup-udeb	passwd/username	string	vubuntubox
-d-i passwd/username string vubuntubox
+d-i passwd/username string vbadmin
 
 # Normal user's password, in clear text
 d-i passwd/user-password password VubuntuBox
