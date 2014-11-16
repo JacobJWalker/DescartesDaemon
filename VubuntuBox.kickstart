@@ -14,7 +14,7 @@ timezone America/Los_Angeles
 #Root password
 rootpw --disabled
 #Initial user
-user vbadmin --fullname "VubuntuBox Admin" --iscrypted --password $1$PhGr1JT6$V2qyBpenDSVlhreBxk4Z.0
+user vubadmin --fullname "VubuntuBox Admin" --iscrypted --password $1$PhGr1JT6$V2qyBpenDSVlhreBxk4Z.0
 #Reboot after installation
 reboot
 #Use text mode install
@@ -38,6 +38,8 @@ firewall --disabled
 #X Window System configuration information
 xconfig --depth=16 --resolution=800x600 --defaultdesktop=GNOME --startxonboot
 
+
+
 # ----------------------------------------------
 # Script to run prior to kickstart / pre-seeding
 # ----------------------------------------------
@@ -52,14 +54,20 @@ dd if=/dev/zero of=/dev/sda bs=1M count=10
 exec < /dev/tty6 > /dev/tty6 2> /dev/tty6
 chvt 6
 
+# Get VBAdmin Password
+stty -echo
+read -p "Enter the Password for the vbadmin user: " VBAdminPasswd
+stty echo
+clear
+
 # Get URL to be used to download Virtual Image file at the end of the installation
 echo "VubuntuBox will download a virtual image after installing itself."
 echo "It can use http, https, ftp, or smb (windows file sharing)"
 echo "It will use either wget or smbget.  Read their documentation for more info."
-read -p "Enter the full URL of the Virtual Image." VirtualImageURL
+read -p "Enter the full URL of the Virtual Image: " VirtualImageURL
 
 # Start an interactive shell for debugging purposes
-/bin/sh
+/bin/ash
 
 # Change back to Virtual Terminal 1 where the Install has been running
 # From http://hintshop.ludvig.co.nz/show/interactive-pre-post-install-scripts-redhat-kickstart/
@@ -68,9 +76,12 @@ exec < /dev/tty1 > /dev/tty1 2> /dev/tty1
 %end
 
 
-# --------------------------------------------
-# Script to run after kickstart / pre-seeding
-# --------------------------------------------
+
+# ---------------------------------------------------
+# Script to run towards the end of the installation.
+# Note: This does not run at the very end, as the
+#       d-i still runs add users, etc, after this
+# ---------------------------------------------------
 %post
 
 # Changes to Virtual Terminal 6 so that output will display properly and can be interactive
@@ -78,12 +89,6 @@ exec < /dev/tty1 > /dev/tty1 2> /dev/tty1
 exec < /dev/tty6 > /dev/tty6 2> /dev/tty6
 chvt 6
 
-# Adds VBAdmin User
-adduser vbadmin --disabled-password -gecos "VirtualBox Admin"
-echo VubuntuBox | passwd vbadmin --stdin
-
-# Adds the GuestOS User
-adduser guestos --disabled-password --gecos "Guest OS"
 
 # Install VirtualBox from its Repository
 echo 'deb http://download.virtualbox.org/virtualbox/debian trusty contrib' >> /etc/apt/sources.list
@@ -97,11 +102,23 @@ apt-get install build-essential module-assistant -y
 m-a prepare
 /etc/init.d/vboxdrv setup
 
-# Download Virtual Image from $VirtualImageURL
-smbget 
 
+# Adding Users in the post script seems to not have their passwords work later.
+# Adds VBAdmin User
+# adduser vbadmin --disabled-password -gecos "VirtualBox Admin"
+# echo VubuntuBox | passwd vbadmin --stdin
+# Adds the GuestOS User
+# adduser guestos --disabled-password --gecos "Guest OS"
+
+
+# Download Virtual Image from $VirtualImageURL
+# Currently this is a "quick and dirty" method, of just running both smbget and wget, knowing one or the other will fail.  
+# An "if" statement with some parsing of $VirtualImageURL should be added to have cleaner code
+# smbget 
+# wget 
 
 # Start an interactive shell for debugging purposes
+echo $VirtualImageURL
 /bin/bash
 
 
