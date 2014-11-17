@@ -40,9 +40,10 @@ xconfig --depth=16 --resolution=800x600 --defaultdesktop=GNOME --startxonboot
 
 
 
-# ----------------------------------------------
-# Script to run prior to kickstart / pre-seeding
-# ----------------------------------------------
+# ----------------------------------------------------------------------
+# Script to run towards the beginning of the installation
+# Note: d-i does some basic hardware detection, etc before running this
+# ----------------------------------------------------------------------
 %pre
 
 # Automatically erases part of existing operating system, so that it avoids the confirmation dialogue about the drive being mounted
@@ -55,10 +56,12 @@ exec < /dev/tty6 > /dev/tty6 2> /dev/tty6
 chvt 6
 
 # Get VBAdmin Password
-stty -echo
-read -p "Enter the Password for the vbadmin user: " VBAdminPasswd
-stty echo
-clear
+# stty and clear apparently don't work when this script runs, and there are problems adding the user at the post section 
+# so this will need to be revisited
+# stty -echo
+# read -p "Enter the Password for the vbadmin user: " VBAdminPasswd
+# stty echo
+# clear
 
 # Get URL to be used to download Virtual Image file at the end of the installation
 echo "VubuntuBox will download a virtual image after installing itself."
@@ -82,12 +85,16 @@ exec < /dev/tty1 > /dev/tty1 2> /dev/tty1
 # Note: This does not run at the very end, as the
 #       d-i still runs add users, etc, after this
 # ---------------------------------------------------
-%post
+%post --nochroot
 
 # Changes to Virtual Terminal 6 so that output will display properly and can be interactive
 # From http://hintshop.ludvig.co.nz/show/interactive-pre-post-install-scripts-redhat-kickstart/
 exec < /dev/tty6 > /dev/tty6 2> /dev/tty6
 chvt 6
+
+# Start an interactive shell for debugging purposes
+echo $VirtualImageURL
+/bin/bash
 
 
 # Install VirtualBox from its Repository
