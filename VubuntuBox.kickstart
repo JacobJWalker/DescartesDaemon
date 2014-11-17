@@ -55,20 +55,6 @@ dd if=/dev/zero of=/dev/sda bs=1M count=10
 exec < /dev/tty6 > /dev/tty6 2> /dev/tty6
 chvt 6
 
-# Get VBAdmin Password
-# stty and clear apparently don't work when this script runs, and there are problems adding the user at the post section 
-# so this will need to be revisited
-# stty -echo
-# read -p "Enter the Password for the vbadmin user: " VBAdminPasswd
-# stty echo
-# clear
-
-# Get URL to be used to download Virtual Image file at the end of the installation
-echo "VubuntuBox will download a virtual image after installing itself."
-echo "It can use http, https, ftp, or smb (windows file sharing)"
-echo "It will use either wget or smbget.  Read their documentation for more info."
-read -p "Enter the full URL of the Virtual Image: " VirtualImageURL
-
 # Start an interactive shell for debugging purposes
 /bin/ash
 
@@ -85,7 +71,7 @@ exec < /dev/tty1 > /dev/tty1 2> /dev/tty1
 # Note: This does not run at the very end, as the
 #       d-i still runs add users, etc, after this
 # ---------------------------------------------------
-%post --nochroot
+%post
 
 # Changes to Virtual Terminal 6 so that output will display properly and can be interactive
 # From http://hintshop.ludvig.co.nz/show/interactive-pre-post-install-scripts-redhat-kickstart/
@@ -96,6 +82,27 @@ chvt 6
 echo $VirtualImageURL
 /bin/bash
 
+
+# Getting variables should be in the %pre script, but I don't know how to transfer them to the %post script, so they are here for now.
+
+# Get VBAdmin Password
+# stty and clear apparently don't work when this script runs, and there are problems adding the user at the post section 
+# so this will need to be revisited
+# stty -echo
+# read -p "Enter the Password for the vbadmin user: " VBAdminPasswd
+# stty echo
+# clear
+
+# Get Guest OS Hostname, which will also be used as part of the Host OS Hostname
+echo Enter the Guest OS Hostname
+echo This will also be used in the Host OS hostname, where it will have the same name, with "-vub" added as a suffix
+read GuestOSHostname
+
+# Get URL to be used to download Virtual Image file at the end of the installation
+echo "VubuntuBox will download a virtual image after installing itself."
+echo "It can use http, https, ftp, or smb (windows file sharing)"
+echo "It will use either wget or smbget.  Read their documentation for more info."
+read -p "Enter the full URL of the Virtual Image: " VirtualImageURL
 
 # Install VirtualBox from its Repository
 echo 'deb http://download.virtualbox.org/virtualbox/debian trusty contrib' >> /etc/apt/sources.list
@@ -110,6 +117,17 @@ m-a prepare
 /etc/init.d/vboxdrv setup
 
 
+# Download Virtual Image from $VirtualImageURL
+# Currently this is a "quick and dirty" method, of just running both smbget and wget, knowing one or the other will fail.  
+# An "if" statement with some parsing of $VirtualImageURL should be added to have cleaner code
+cd /usr/share/virtualbox
+smbget $VirtualImageURL
+wget $VirtualImageURL
+
+# Start an interactive shell for debugging purposes
+echo $VirtualImageURL
+/bin/bash
+
 # Adding Users in the post script seems to not have their passwords work later.
 # Adds VBAdmin User
 # adduser vbadmin --disabled-password -gecos "VirtualBox Admin"
@@ -117,16 +135,6 @@ m-a prepare
 # Adds the GuestOS User
 # adduser guestos --disabled-password --gecos "Guest OS"
 
-
-# Download Virtual Image from $VirtualImageURL
-# Currently this is a "quick and dirty" method, of just running both smbget and wget, knowing one or the other will fail.  
-# An "if" statement with some parsing of $VirtualImageURL should be added to have cleaner code
-# smbget 
-# wget 
-
-# Start an interactive shell for debugging purposes
-echo $VirtualImageURL
-/bin/bash
 
 
 # Change back to Virtual Terminal 1 where the Install has been running
