@@ -114,6 +114,9 @@ fi
 chvt 1
 exec < /dev/tty1 > /dev/tty1 2> /dev/tty1
 
+# Unmount RamDisk, but still leaving it in memory
+umount /variables
+
 # Automatically erases part of existing operating system, so that it avoids the confirmation dialogue about the drive being mounted
 # See https://bugs.launchpad.net/ubuntu/+source/debian-installer/+bug/1370315
 dd if=/dev/zero of=/dev/sda bs=1M count=10
@@ -137,6 +140,14 @@ chvt 6
 # Start an interactive shell for debugging purposes
 echo $VirtualImageURL
 /bin/bash
+
+# Remount the RamDisk to get Variables
+mkdir -p /variables
+mount /dev/ram1 /variables
+
+# Import Variables
+export GuestOSHostname=`echo /variables/GuestOSHostname`
+export VirtualImageURL=`echo /variables/VirtualImageURL`
 
 
 # Install VirtualBox from its Repository
