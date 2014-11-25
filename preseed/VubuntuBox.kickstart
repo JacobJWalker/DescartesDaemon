@@ -137,18 +137,17 @@ dd if=/dev/zero of=/dev/sda bs=1M count=10
 exec < /dev/tty6 > /dev/tty6 2> /dev/tty6
 chvt 6
 
-# Start an interactive shell for debugging purposes
-echo $VirtualImageURL
-/bin/bash
-
 # Remount the RamDisk to get Variables
 mkdir -p /variables
 mount /dev/ram1 /variables
 
 # Import Variables
-export GuestOSHostname=`echo /variables/GuestOSHostname`
-export VirtualImageURL=`echo /variables/VirtualImageURL`
+export GuestOSHostname=`cat /variables/GuestOSHostname`
+export VirtualImageURL=`cat /variables/VirtualImageURL`
 
+# Start an interactive shell for debugging purposes
+echo $VirtualImageURL
+/bin/bash
 
 # Install VirtualBox from its Repository
 echo 'deb http://download.virtualbox.org/virtualbox/debian trusty contrib' >> /etc/apt/sources.list
