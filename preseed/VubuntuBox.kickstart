@@ -57,7 +57,7 @@ echo ALL EXISTING DATA WILL BE LOST
 echo
 read -p "Are you sure you want to continue? ? (y/n) " -n 1
 echo
-if [[ $REPLY != ^[Yy]$ ]]; then
+if [[ $REPLY != y ]]; then
     shutdown      
 fi
 
