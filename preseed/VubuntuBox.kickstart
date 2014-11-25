@@ -52,7 +52,7 @@ exec < /dev/tty6 > /dev/tty6 2> /dev/tty6
 chvt 6
 
 # Copy Binaries into Appropriate Locations to Have a More Robust 
-cp --update --recursive /cdrom/pool/binary-i386/* /
+cp --recursive /cdrom/pool/binary-i386/* /
 
 # Make a RamDisk to store Environmental Variables, so they can be used later in the %post script
 mkfs -q /dev/ram1 8192
@@ -70,15 +70,24 @@ mount /dev/ram1 /variables
 # clear
 
 # Get Guest OS Hostname, which will also be used as part of the Host OS Hostname
+echo
 echo Enter the Guest OS Hostname
-echo This will also be used in the Host OS hostname, where it will have the same name, with "-vub" added as a suffix
+echo This will also be used in the Host OS hostname, where it will have the same name, 
+echo with "-vub" added as a suffix
+echo
 read GuestOSHostname
+echo $GuestOSHostname > /variables/GuestOSHostname
+echo
+
 
 # Get URL to be used to download Virtual Image file at the end of the installation
+echo
 echo "VubuntuBox will download a virtual image after installing itself."
 echo "It can use http, https, ftp, or smb (windows file sharing)"
 echo "It will use either wget or smbget.  Read their documentation for more info."
 read -p "Enter the full URL of the Virtual Image: " VirtualImageURL
+echo $VirtualImageURL > /variables/VirtualImageURL
+echo
 
 # Confirms that the user knows that the disk is going to get wiped with this installation
 echo WARNING!!! WARNING!!! WARNING!!!
@@ -96,7 +105,6 @@ echo
 if [[ "$REPLY" != "y" ]]; then
     shutdown      
 fi
-
 
 # Start an interactive shell for debugging purposes
 /bin/ash
