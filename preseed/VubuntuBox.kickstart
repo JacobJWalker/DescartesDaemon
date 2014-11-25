@@ -46,14 +46,26 @@ xconfig --depth=16 --resolution=800x600 --defaultdesktop=GNOME --startxonboot
 # ----------------------------------------------------------------------
 %pre
 
-# Automatically erases part of existing operating system, so that it avoids the confirmation dialogue about the drive being mounted
-# See https://bugs.launchpad.net/ubuntu/+source/debian-installer/+bug/1370315
-dd if=/dev/zero of=/dev/sda bs=1M count=10
-
 # Changes to Virtual Terminal 6 so that output will display properly and can be interactive
 # From http://hintshop.ludvig.co.nz/show/interactive-pre-post-install-scripts-redhat-kickstart/
 exec < /dev/tty6 > /dev/tty6 2> /dev/tty6
 chvt 6
+
+echo WARNING!!! WARNING!!! WARNING!!!
+echo WARNING! THE EXISTING DATA IN THIS HARDDISK WILL BE OVERWRITTEN!
+echo ALL EXISTING DATA WILL BE LOST
+echo
+read -p "Are you sure you want to continue? ? (y/n) " -n 1
+echo
+if [[ $REPLY != ^[Yy]$ ]]; then
+    shutdown      
+fi
+
+read -p "Let me ask you again, Are you sure you want to continue? (y/n) " -n 1
+echo
+if [[ $REPLY != ^[Yy]$ ]]; then
+    shutdown      
+fi
 
 # Start an interactive shell for debugging purposes
 /bin/ash
@@ -62,6 +74,11 @@ chvt 6
 # From http://hintshop.ludvig.co.nz/show/interactive-pre-post-install-scripts-redhat-kickstart/
 chvt 1
 exec < /dev/tty1 > /dev/tty1 2> /dev/tty1
+
+# Automatically erases part of existing operating system, so that it avoids the confirmation dialogue about the drive being mounted
+# See https://bugs.launchpad.net/ubuntu/+source/debian-installer/+bug/1370315
+dd if=/dev/zero of=/dev/sda bs=1M count=10
+
 %end
 
 
