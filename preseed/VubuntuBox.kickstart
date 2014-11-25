@@ -55,9 +55,9 @@ echo WARNING!!! WARNING!!! WARNING!!!
 echo WARNING! THE EXISTING DATA IN THIS HARDDISK WILL BE OVERWRITTEN!
 echo ALL EXISTING DATA WILL BE LOST
 echo
-read -p "Are you sure you want to continue? ? (y/n) " -n 1
+read -p "Are you sure you want to continue? ? (y/n) " -n 1 REPLY
 echo
-if [[ $REPLY != y ]]; then
+if [[ "$REPLY" != "y" ]]; then
     shutdown      
 fi
 
