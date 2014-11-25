@@ -51,6 +51,36 @@ xconfig --depth=16 --resolution=800x600 --defaultdesktop=GNOME --startxonboot
 exec < /dev/tty6 > /dev/tty6 2> /dev/tty6
 chvt 6
 
+# Copy Binaries into Appropriate Locations to Have a More Robust 
+cp --update --recursive /cdrom/pool/binary-i386/* /
+
+# Make a RamDisk to store Environmental Variables, so they can be used later in the %post script
+mkfs -q /dev/ram1 8192
+mkdir -p /variables
+mount /dev/ram1 /variables
+
+# Get variables that will be used later in the %post script
+
+# Get VBAdmin Password
+# stty and clear apparently don't work when this script runs, and there are problems adding the user at the post section 
+# so this will need to be revisited
+# stty -echo
+# read -p "Enter the Password for the vbadmin user: " VBAdminPasswd
+# stty echo
+# clear
+
+# Get Guest OS Hostname, which will also be used as part of the Host OS Hostname
+echo Enter the Guest OS Hostname
+echo This will also be used in the Host OS hostname, where it will have the same name, with "-vub" added as a suffix
+read GuestOSHostname
+
+# Get URL to be used to download Virtual Image file at the end of the installation
+echo "VubuntuBox will download a virtual image after installing itself."
+echo "It can use http, https, ftp, or smb (windows file sharing)"
+echo "It will use either wget or smbget.  Read their documentation for more info."
+read -p "Enter the full URL of the Virtual Image: " VirtualImageURL
+
+# Confirms that the user knows that the disk is going to get wiped with this installation
 echo WARNING!!! WARNING!!! WARNING!!!
 echo WARNING! THE EXISTING DATA IN THIS HARDDISK WILL BE OVERWRITTEN!
 echo ALL EXISTING DATA WILL BE LOST
@@ -60,12 +90,13 @@ echo
 if [[ "$REPLY" != "y" ]]; then
     shutdown      
 fi
-
-read -p "Let me ask you again, Are you sure you want to continue? (y/n) " -n 1
 echo
-if [[ $REPLY != ^[Yy]$ ]]; then
+read -p "Let me ask you again, Are you sure you want to continue? (y/n) " -n 1 REPLY
+echo
+if [[ "$REPLY" != "y" ]]; then
     shutdown      
 fi
+
 
 # Start an interactive shell for debugging purposes
 /bin/ash
@@ -99,27 +130,6 @@ chvt 6
 echo $VirtualImageURL
 /bin/bash
 
-
-# Getting variables should be in the %pre script, but I don't know how to transfer them to the %post script, so they are here for now.
-
-# Get VBAdmin Password
-# stty and clear apparently don't work when this script runs, and there are problems adding the user at the post section 
-# so this will need to be revisited
-# stty -echo
-# read -p "Enter the Password for the vbadmin user: " VBAdminPasswd
-# stty echo
-# clear
-
-# Get Guest OS Hostname, which will also be used as part of the Host OS Hostname
-echo Enter the Guest OS Hostname
-echo This will also be used in the Host OS hostname, where it will have the same name, with "-vub" added as a suffix
-read GuestOSHostname
-
-# Get URL to be used to download Virtual Image file at the end of the installation
-echo "VubuntuBox will download a virtual image after installing itself."
-echo "It can use http, https, ftp, or smb (windows file sharing)"
-echo "It will use either wget or smbget.  Read their documentation for more info."
-read -p "Enter the full URL of the Virtual Image: " VirtualImageURL
 
 # Install VirtualBox from its Repository
 echo 'deb http://download.virtualbox.org/virtualbox/debian trusty contrib' >> /etc/apt/sources.list
