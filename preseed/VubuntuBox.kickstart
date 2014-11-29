@@ -12,9 +12,9 @@ mouse
 #System timezone
 timezone America/Los_Angeles
 #Root password
-# rootpw --disabled
+rootpw --disabled
 #Initial user
-# user vubadmin --fullname "VubuntuBox Admin" --iscrypted --password $1$PhGr1JT6$V2qyBpenDSVlhreBxk4Z.0
+user dummy --fullname "Dummy Account" --iscrypted --password $1$PhGr1JT6$V2qyBpenDSVlhreBxk4Z.0
 #Reboot after installation
 reboot
 #Use text mode install
