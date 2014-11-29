@@ -12,9 +12,9 @@ mouse
 #System timezone
 timezone America/Los_Angeles
 #Root password
-rootpw --disabled
+# rootpw --disabled
 #Initial user
-user vubadmin --fullname "VubuntuBox Admin" --iscrypted --password $1$PhGr1JT6$V2qyBpenDSVlhreBxk4Z.0
+# user vubadmin --fullname "VubuntuBox Admin" --iscrypted --password $1$PhGr1JT6$V2qyBpenDSVlhreBxk4Z.0
 #Reboot after installation
 reboot
 #Use text mode install
@@ -61,30 +61,39 @@ mount /dev/ram1 /variables
 
 # Get variables that will be used later in the %post script
 
-# Get VBAdmin Password
+# Get vubadmin Password
 # stty and clear apparently don't work when this script runs, and there are problems adding the user at the post section 
 # so this will need to be revisited
 # stty -echo
-# read -p "Enter the Password for the vbadmin user: " VBAdminPasswd
+echo VubuntuBox Admin (vubadmin) Password
+echo ====================================
+echo
+read -p "Enter the Password for the vubadmin user: " VubAdminPasswd
+echo $VubAdminPasswd > /variables/VubAdminPasswd
+echo
 # stty echo
 # clear
 
 # Get Guest OS Hostname, which will also be used as part of the Host OS Hostname
 echo
-echo Enter the Guest OS Hostname
+echo Guest OS Hostname
+echo =================
 echo This will also be used in the Host OS hostname, where it will have the same name, 
 echo with "-vub" added as a suffix
 echo
-read GuestOSHostname
+read -p "Enter the main Guest OS Hostname" GuestOSHostname
 echo $GuestOSHostname > /variables/GuestOSHostname
 echo
 
 
 # Get URL to be used to download Virtual Image file at the end of the installation
+echo Virtual Machine OVA URL
+echo =======================
 echo
-echo "VubuntuBox will download a virtual image after installing itself."
-echo "It can use http, https, ftp, or smb (windows file sharing)"
-echo "It will use either wget or smbget.  Read their documentation for more info."
+echo VubuntuBox will download a virtual image after installing itself.
+echo It can use http, https, ftp, or smb (windows file sharing)
+echo It will use either wget or smbget.  Read their documentation for more info.
+echo
 read -p "Enter the full URL of the Virtual Image: " VirtualImageURL
 echo $VirtualImageURL > /variables/VirtualImageURL
 echo
@@ -144,6 +153,16 @@ mount /dev/ram1 /variables
 # Import Variables
 export GuestOSHostname=`cat /variables/GuestOSHostname`
 export VirtualImageURL=`cat /variables/VirtualImageURL`
+export VubAdminPasswd=`cat /variables/VubAdminPasswd`
+
+# Add Users
+# Adds vubdmin User
+adduser --disabled-password --gecos "VirtualBox Admin" vubadmin
+echo "vubadmin:$VubAdminPasswd" | chpasswd
+
+# Adds the GuestOS User
+adduser --disabled-password --gecos "Guest OS 1" guestos0001
+passwd guestos0001 -d
 
 # Start an interactive shell for debugging purposes
 echo $VirtualImageURL
@@ -172,14 +191,6 @@ wget $VirtualImageURL
 # Start an interactive shell for debugging purposes
 echo $VirtualImageURL
 /bin/bash
-
-# Adding Users in the post script seems to not have their passwords work later.
-# Adds VBAdmin User
-# adduser vbadmin --disabled-password -gecos "VirtualBox Admin"
-# echo VubuntuBox | passwd vbadmin --stdin
-# Adds the GuestOS User
-# adduser guestos --disabled-password --gecos "Guest OS"
-
 
 
 # Change back to Virtual Terminal 1 where the Install has been running

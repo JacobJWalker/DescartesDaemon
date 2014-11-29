@@ -22,20 +22,8 @@ d-i netcfg/get_domain string unassigned-domain
 # Disable that annoying WEP key dialog.
 d-i netcfg/wireless_wep string
 
-# Create a normal user account now?
-# user-setup-udeb	passwd/make-user	boolean	true
-
-# Full name for the new user:
-# user-setup-udeb	passwd/user-fullname	string	VubuntuBox Admin
-# d-i passwd/user-fullname string VubuntuBox Admin
-
-# Username for your account:
-# user-setup-udeb	passwd/username	string	vubuntubox
-# d-i passwd/username string vubadmin
-
-# Normal user's password, in clear text
-# d-i passwd/user-password password VubuntuBox
-# d-i passwd/user-password-again password VubuntuBox
+# Allow Weak Passwords
+d-i user-setup/allow-password-weak boolean true
 
 # Controls whether or not the hardware clock is set to UTC.
 d-i clock-setup/utc boolean false
