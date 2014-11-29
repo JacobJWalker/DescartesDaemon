@@ -22,9 +22,6 @@ d-i netcfg/get_domain string unassigned-domain
 # Disable that annoying WEP key dialog.
 d-i netcfg/wireless_wep string
 
-# Allow Weak Passwords
-d-i user-setup/allow-password-weak boolean true
-
 # Controls whether or not the hardware clock is set to UTC.
 d-i clock-setup/utc boolean false
 
