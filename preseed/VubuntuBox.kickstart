@@ -65,8 +65,8 @@ mount /dev/ram1 /variables
 # stty and clear apparently don't work when this script runs, and there are problems adding the user at the post section 
 # so this will need to be revisited
 # stty -echo
-echo VubuntuBox Admin (vubadmin) Password
-echo ====================================
+echo 'VubuntuBox Admin (vubadmin) Password'
+echo '===================================='
 echo
 read -p "Enter the Password for the vubadmin user: " VubAdminPasswd
 echo $VubAdminPasswd > /variables/VubAdminPasswd
@@ -76,32 +76,32 @@ echo
 
 # Get Guest OS Hostname, which will also be used as part of the Host OS Hostname
 echo
-echo Guest OS Hostname
-echo =================
-echo This will also be used in the Host OS hostname, where it will have the same name, 
-echo with "-vub" added as a suffix
+echo 'Guest OS Hostname'
+echo '================='
+echo 'This will also be used in the Host OS hostname, where it will have the same name,'
+echo 'with "-vub" added as a suffix'
 echo
-read -p "Enter the main Guest OS Hostname" GuestOSHostname
+read -p "Enter the main Guest OS Hostname: " GuestOSHostname
 echo $GuestOSHostname > /variables/GuestOSHostname
 echo
 
 
 # Get URL to be used to download Virtual Image file at the end of the installation
-echo Virtual Machine OVA URL
-echo =======================
+echo 'Virtual Machine OVA URL'
+echo '======================='
 echo
-echo VubuntuBox will download a virtual image after installing itself.
-echo It can use http, https, ftp, or smb (windows file sharing)
-echo It will use either wget or smbget.  Read their documentation for more info.
+echo 'VubuntuBox will download a virtual image after installing itself.'
+echo 'It can use http, https, ftp, or smb (windows file sharing)'
+echo 'It will use either wget or smbget.  Read their documentation for more info.'
 echo
 read -p "Enter the full URL of the Virtual Image: " VirtualImageURL
 echo $VirtualImageURL > /variables/VirtualImageURL
 echo
 
 # Confirms that the user knows that the disk is going to get wiped with this installation
-echo WARNING!!! WARNING!!! WARNING!!!
-echo WARNING! THE EXISTING DATA IN THIS HARDDISK WILL BE OVERWRITTEN!
-echo ALL EXISTING DATA WILL BE LOST
+echo 'WARNING!!! WARNING!!! WARNING!!!'
+echo 'WARNING! THE EXISTING DATA IN THIS HARDDISK WILL BE OVERWRITTEN!'
+echo 'ALL EXISTING DATA WILL BE LOST'
 echo
 read -p "Are you sure you want to continue? ? (y/n) " -n 1 REPLY
 echo
