@@ -188,6 +188,9 @@ cd /usr/share/virtualbox
 smbget $VirtualImageURL
 wget $VirtualImageURL
 
+# This is a temporary kludge to load the OVA, since there is only one OVA, I can use a wildcard, without knowing/parsing its name.
+su -c "VBoxManage import /usr/share/virtualbox/*.ova --vsys 0 --vmname guestos0001" guestos0001
+
 # Start an interactive shell for debugging purposes
 echo $VirtualImageURL
 /bin/bash
