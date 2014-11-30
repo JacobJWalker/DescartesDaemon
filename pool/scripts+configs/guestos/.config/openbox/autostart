@@ -1,0 +1,2 @@
+VirtualBox --startvm guestos0001 --fullscreen
+logout

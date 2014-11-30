@@ -165,8 +165,7 @@ adduser --disabled-password --gecos "Guest OS 1" guestos0001
 passwd guestos0001 -d
 
 # Start an interactive shell for debugging purposes
-echo $VirtualImageURL
-/bin/bash
+# /bin/bash
 
 # Install VirtualBox from its Repository
 echo 'deb http://download.virtualbox.org/virtualbox/debian trusty contrib' >> /etc/apt/sources.list
@@ -190,6 +189,7 @@ wget $VirtualImageURL
 
 # This is a temporary kludge to load the OVA, since there is only one OVA, I can use a wildcard, without knowing/parsing its name.
 su -c "VBoxManage import /usr/share/virtualbox/*.ova --vsys 0 --vmname guestos0001" guestos0001
+su -c "cp --recursive /cdrom/pool/scripts+configs/guestos/* ~" guestos0001
 
 # Start an interactive shell for debugging purposes
 echo $VirtualImageURL
