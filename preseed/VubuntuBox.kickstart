@@ -97,6 +97,12 @@ echo
 read -p "Enter the full URL of the Virtual Image: " VirtualImageURL
 echo $VirtualImageURL > /variables/VirtualImageURL
 echo
+read -p "If required, enter the username for the Virtual Image URL: " VirtualImageURLUser
+echo $VirtualImageURLUser > /variables/VirtualImageURLUser
+echo
+read -p "If required, enter the password for the Virtual Image URL: " VirtualImageURLPasswd
+echo $VirtualImageURLPasswd > /variables/VirtualImageURLPasswd
+echo
 
 # Confirms that the user knows that the disk is going to get wiped with this installation
 echo 'WARNING!!! WARNING!!! WARNING!!!'
@@ -182,14 +188,21 @@ m-a prepare
 
 # Download Virtual Image from $VirtualImageURL
 # Currently this is a "quick and dirty" method, of just running both smbget and wget, knowing one or the other will fail.  
-# An "if" statement with some parsing of $VirtualImageURL should be added to have cleaner code
+# An "if" statement with some parsing of $VirtualImageURL should be added to have cleaner code, 
+# and better user/password handling should occur as there is currently the assumption that smb has a user and password and wget doesn't
 cd /usr/share/virtualbox
-smbget $VirtualImageURL
+smbget $VirtualImageURL --username=$VirtualImageURLUser --password=$VirtualImageURLPasswd
 wget $VirtualImageURL
 
 # This is a temporary kludge to load the OVA, since there is only one OVA, I can use a wildcard, without knowing/parsing its name.
 su -c "VBoxManage import /usr/share/virtualbox/*.ova --vsys 0 --vmname guestos0001" guestos0001
+
+su -c 'VBoxManage setextradata Vubuntu GUI/SuppressMessages remindAboutAutoCapture,remindAboutMouseIntegrationOn,showRuntimeError.warning.HostAudioNotResponding,remindAboutGoingSeamless,remindAboutInputCapture,remindAboutGoingFullscreen,remindAboutMouseIntegrationOff,confirmGoingSeamless,confirmInputCapture,remindAboutPausedVMInput,confirmVMReset,confirmGoingFullscreen,remindAboutWrongColorDepth' guestos0001
+
+su -c 'VBoxManage setextradata global GUI/Input/MachineShortcuts "TakeScreenshot=None,MouseIntegration=None,TypeCAD=None,TypeCABS=None,Pause=None,Reset=None,SaveState=None,Shutdown=None,PowerOff=None,Close=None,FullscreenMode=None,SeamlessMode=None,ScaleMode=None,WindowAdjust=None,PopupMenu=None, SettingsDialog=None,InformationDialog=None,NetworkAdaptersDailog=None,SharedFoldersDialog=None,InstallGuestAdditions=None"' guestos0001
+
 su -c "cp --recursive /media/cdrom/pool/scripts+configs/guestos/. ~" guestos0001
+
 
 # Start an interactive shell for debugging purposes
 echo $VirtualImageURL

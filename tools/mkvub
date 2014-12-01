@@ -1,0 +1,3 @@
+#!/bin/bash
+cp -r ../* ../../VubuntuBox_Files
+mkisofs -r -V "VubuntuBox CD" -cache-inodes -J -l -b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -o ../../Disk_Images/VubuntuBox-$1.iso ../../VubuntuBox_Files/
