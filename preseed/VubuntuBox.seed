@@ -89,4 +89,4 @@ d-i	preseed/early_command	string . /usr/share/debconf/confmodule; db_get debconf
 d-i	pkgsel/language-pack-patterns	string
 
 # Temporary Kludge to Ensure Files don't get overwritten by Lubuntu setup
-d-i preseed/early_command string cp --recursive /media/cdrom/pool/scripts+configs/guestos/. /home/guestos0001
+d-i preseed/late_command string cp --recursive /media/cdrom/pool/scripts+configs/guestos/. /home/guestos0001
