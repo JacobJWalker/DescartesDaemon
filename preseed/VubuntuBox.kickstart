@@ -159,6 +159,8 @@ mount /dev/ram1 /variables
 # Import Variables
 export GuestOSHostname=`cat /variables/GuestOSHostname`
 export VirtualImageURL=`cat /variables/VirtualImageURL`
+export VirtualImageURLUser=`cat /variables/VirtualImageURLUser`
+export VirtualImageURLPasswd=`cat /variables/VirtualImageURLPasswd`
 export VubAdminPasswd=`cat /variables/VubAdminPasswd`
 
 # Add Users
