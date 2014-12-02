@@ -59,6 +59,14 @@ mkfs -q /dev/ram1 8192
 mkdir -p /variables
 mount /dev/ram1 /variables
 
+# Pre-Set Variables to Customize for Specific Organizations
+# Example data shown below
+# echo 'VubuntuBox' > /variables/VubAdminPasswd
+# echo 'hccts' > /variables/GuestOSHostname
+# echo 'http://vubuntubox.org/FreeDos_1.1.ova' > /variables/VirtualImageURL
+# echo 'labassist' > /variables/VirtualImageURLUser
+# echo 'Gr8Minds' > /variables/VirtualImageURLPasswd
+
 # Get variables that will be used later in the %post script
 
 # Get vubadmin Password
