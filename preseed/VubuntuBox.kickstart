@@ -123,8 +123,8 @@ if [[ "$REPLY" != "y" ]]; then
     shutdown      
 fi
 
-# Start an interactive shell for debugging purposes
-/bin/ash
+# Start a %pre interactive shell (Comment/Uncomment and/or move as needed for debugging)
+# /bin/ash
 
 # Change back to Virtual Terminal 1 where the Install has been running
 # From http://hintshop.ludvig.co.nz/show/interactive-pre-post-install-scripts-redhat-kickstart/
@@ -174,9 +174,6 @@ echo "vubadmin:$VubAdminPasswd" | chpasswd
 adduser --disabled-password --gecos "Guest OS 1" guestos0001
 passwd guestos0001 -d
 
-# Start an interactive shell for debugging purposes
-# /bin/bash
-
 # Install VirtualBox from its Repository
 echo 'deb http://download.virtualbox.org/virtualbox/debian trusty contrib' >> /etc/apt/sources.list
 wget -q https://www.virtualbox.org/download/oracle_vbox.asc -O- | apt-key add -
@@ -213,9 +210,8 @@ su -c 'VBoxManage setextradata global GUI/Input/MachineShortcuts "TakeScreenshot
 su -c "cp --recursive /media/cdrom/pool/scripts+configs/guestos/. ~" guestos0001
 
 
-# Start an interactive shell for debugging purposes
-echo $VirtualImageURL
-/bin/bash
+# Start a %post interactive shell (Comment/Uncomment and/or move as needed for debugging)
+# /bin/bash
 
 
 # Change back to Virtual Terminal 1 where the Install has been running
