@@ -51,7 +51,7 @@ xconfig --depth=16 --resolution=800x600 --defaultdesktop=GNOME --startxonboot
 exec < /dev/tty6 > /dev/tty6 2> /dev/tty6
 chvt 6
 
-# Copy Binaries into Appropriate Locations to Have a More Robust 
+# Copy Binaries into Appropriate Locations to Have a More Robust initial environment
 cp --recursive /cdrom/pool/binary-i386/* /
 
 # Make a RamDisk to store Environmental Variables, so they can be used later in the %post script
@@ -62,8 +62,6 @@ mount /dev/ram1 /variables
 # Get variables that will be used later in the %post script
 
 # Get vubadmin Password
-# stty and clear apparently don't work when this script runs, and there are problems adding the user at the post section 
-# so this will need to be revisited
 echo 'VubuntuBox Admin (vubadmin) Password'
 echo '===================================='
 echo
@@ -72,7 +70,7 @@ read -p "Enter the Password for the vubadmin user: " VubAdminPasswd
 stty echo
 echo $VubAdminPasswd > /variables/VubAdminPasswd
 echo
-# clear
+echo
 
 # Get Guest OS Hostname, which will also be used as part of the Host OS Hostname
 echo
@@ -83,6 +81,7 @@ echo 'with "-vub" added as a suffix'
 echo
 read -p "Enter the main Guest OS Hostname: " GuestOSHostname
 echo $GuestOSHostname > /variables/GuestOSHostname
+echo
 echo
 
 
@@ -104,6 +103,7 @@ stty -echo
 read -p "If required, enter the password for the Virtual Image URL: " VirtualImageURLPasswd
 stty echo
 echo $VirtualImageURLPasswd > /variables/VirtualImageURLPasswd
+echo
 echo
 
 # Confirms that the user knows that the disk is going to get wiped with this installation
