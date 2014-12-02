@@ -64,14 +64,14 @@ mount /dev/ram1 /variables
 # Get vubadmin Password
 # stty and clear apparently don't work when this script runs, and there are problems adding the user at the post section 
 # so this will need to be revisited
-# stty -echo
 echo 'VubuntuBox Admin (vubadmin) Password'
 echo '===================================='
 echo
+stty -echo
 read -p "Enter the Password for the vubadmin user: " VubAdminPasswd
+stty echo
 echo $VubAdminPasswd > /variables/VubAdminPasswd
 echo
-# stty echo
 # clear
 
 # Get Guest OS Hostname, which will also be used as part of the Host OS Hostname
@@ -100,7 +100,9 @@ echo
 read -p "If required, enter the username for the Virtual Image URL: " VirtualImageURLUser
 echo $VirtualImageURLUser > /variables/VirtualImageURLUser
 echo
+stty -echo
 read -p "If required, enter the password for the Virtual Image URL: " VirtualImageURLPasswd
+stty echo
 echo $VirtualImageURLPasswd > /variables/VirtualImageURLPasswd
 echo
 
