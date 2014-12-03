@@ -205,6 +205,7 @@ wget $VirtualImageURL
 
 # This is a temporary kludge to load the OVA, since there is only one OVA, I can use a wildcard, without knowing/parsing its name.
 su -c "VBoxManage import /usr/share/virtualbox/*.ova --vsys 0 --vmname guestos0001" guestos0001
+rm /usr/share/virtualbox/*.ova
 
 # Turns off VirtualBox warning messages
 su -c 'VBoxManage setextradata guestos0001 GUI/SuppressMessages remindAboutAutoCapture,remindAboutMouseIntegrationOn,showRuntimeError.warning.HostAudioNotResponding,remindAboutGoingSeamless,remindAboutInputCapture,remindAboutGoingFullscreen,remindAboutMouseIntegrationOff,confirmGoingSeamless,confirmInputCapture,remindAboutPausedVMInput,confirmVMReset,confirmGoingFullscreen,remindAboutWrongColorDepth' guestos0001
