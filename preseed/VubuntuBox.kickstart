@@ -175,8 +175,10 @@ export VubAdminPasswd=`cat /variables/VubAdminPasswd`
 
 # Add Users
 # Adds vubdmin User
+# Adds vubdmin to sudoer
 adduser --disabled-password --gecos "VirtualBox Admin" vubadmin
 echo "vubadmin:$VubAdminPasswd" | chpasswd
+usermod -a -G sudo vubadmin
 
 # Adds the GuestOS User
 adduser --disabled-password --gecos "Guest OS 1" guestos0001
@@ -218,6 +220,9 @@ su -c 'VBoxManage setextradata global GUI/Input/MachineShortcuts "TakeScreenshot
 
 su -c "cp --recursive /media/cdrom/pool/scripts+configs/guestos/. ~" guestos0001
 
+# Fixes USB Issue
+adduser vubadmin vboxusers
+adduser guestos0001 vboxusers
 
 # Start a %post interactive shell (Comment/Uncomment and/or move as needed for debugging)
 # /bin/bash
