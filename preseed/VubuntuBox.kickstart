@@ -184,6 +184,21 @@ usermod -a -G sudo vubadmin
 adduser --disabled-password --gecos "Guest OS 1" guestos0001
 passwd guestos0001 -d
 
+#uninstalls lightdm to prep for SLiM
+apt-get remove lightdm -y
+
+#installs SLiM
+apt-get install slim -y
+
+#installs LXDE (compatability with SLiM)
+apt-get install LXDE -y
+
+#Uninstalls Lubuntu-Desktop (for compatability)
+apt-get remove lubuntu-desktop -y
+
+#cleanup cleanup everybody everywhere
+apt-get autoremove -y
+
 # Install VirtualBox from its Repository
 echo 'deb http://download.virtualbox.org/virtualbox/debian trusty contrib' >> /etc/apt/sources.list
 wget -q https://www.virtualbox.org/download/oracle_vbox.asc -O- | apt-key add -
@@ -210,7 +225,7 @@ su -c "VBoxManage import /usr/share/virtualbox/*.ova --vsys 0 --vmname guestos00
 rm /usr/share/virtualbox/*.ova
 
 # Turns off VirtualBox warning messages
-su -c 'VBoxManage setextradata guestos0001 GUI/SuppressMessages remindAboutAutoCapture,remindAboutMouseIntegrationOn,showRuntimeError.warning.HostAudioNotResponding,remindAboutGoingSeamless,remindAboutInputCapture,remindAboutGoingFullscreen,remindAboutMouseIntegrationOff,confirmGoingSeamless,confirmInputCapture,remindAboutPausedVMInput,confirmVMReset,confirmGoingFullscreen,remindAboutWrongColorDepth' guestos0001
+su -c 'VBoxManage setextradata guestos0001 GUI/SuppressMessages "all"
 
 # Turns off VirtualBox Mini Toolbar
 su -c 'VBoxManage setextradata guestos0001 GUI/ShowMiniToolBar no' guestos0001
@@ -218,14 +233,23 @@ su -c 'VBoxManage setextradata guestos0001 GUI/ShowMiniToolBar no' guestos0001
 # Turns off VirtualBox menus, shortcut keys, etc.
 su -c 'VBoxManage setextradata global GUI/Input/MachineShortcuts "TakeScreenshot=None,MouseIntegration=None,TypeCAD=None,TypeCABS=None,Pause=None,Reset=None,SaveState=None,Shutdown=None,PowerOff=None,Close=None,FullscreenMode=None,SeamlessMode=None,ScaleMode=None,WindowAdjust=None,PopupMenu=None, SettingsDialog=None,InformationDialog=None,NetworkAdaptersDailog=None,SharedFoldersDialog=None,InstallGuestAdditions=None"' guestos0001
 
-su -c "cp --recursive /media/cdrom/pool/scripts+configs/guestos/. ~" guestos0001
-
 # Fixes USB Issue
 adduser vubadmin vboxusers
 adduser guestos0001 vboxusers
 
+# Copy VirtualBox XSession
+cp /media/cdrom/pool/scripts+configs/vub/xsessions/. /usr/share/xsessions/
+
+# Copy SLiM Config
+cp /media/cdrom/pool/scripts+configs/vub/etc/. /etc/
+
+# Copy Automount UDev Rules
+cp /media/cdrom/pool/scripts+configs/vub/udev/. /etc/udev/rules.d/
+cp /media/cdrom/pool/scripts+configs/vub/usrbin/. /usr/bin/
+chmod +x /usr/bin/vbox-automount-usb
+
 # Start a %post interactive shell (Comment/Uncomment and/or move as needed for debugging)
-# /bin/bash
+/bin/bash
 
 
 # Change back to Virtual Terminal 1 where the Install has been running
