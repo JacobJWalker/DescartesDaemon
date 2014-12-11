@@ -51,6 +51,10 @@ xconfig --depth=16 --resolution=800x600 --defaultdesktop=GNOME --startxonboot
 exec < /dev/tty6 > /dev/tty6 2> /dev/tty6
 chvt 6
 
+# REMOVE LATER
+ /bin/ash
+
+
 # Copy Binaries into Appropriate Locations to Have a More Robust initial environment
 cp --recursive /cdrom/pool/binary-i386/* /
 
@@ -224,6 +228,9 @@ wget $VirtualImageURL
 su -c "VBoxManage import /usr/share/virtualbox/*.ova --vsys 0 --vmname guestos0001" guestos0001
 rm /usr/share/virtualbox/*.ova
 
+# REMOVE LATER
+ /bin/bash
+
 # Turns off VirtualBox warning messages
 su -c 'VBoxManage setextradata guestos0001 GUI/SuppressMessages "all"
 
@@ -238,18 +245,18 @@ adduser vubadmin vboxusers
 adduser guestos0001 vboxusers
 
 # Copy VirtualBox XSession
-cp /media/cdrom/pool/scripts+configs/vub/xsessions/. /usr/share/xsessions/
+cp /media/cdrom/vub/xsessions/VirtualBox.desktop /usr/share/xsessions/
 
 # Copy SLiM Config
-cp /media/cdrom/pool/scripts+configs/vub/etc/. /etc/
+cp /media/cdrom/vub/etc/slim.conf /etc/
 
 # Copy Automount UDev Rules
-cp /media/cdrom/pool/scripts+configs/vub/udev/. /etc/udev/rules.d/
-cp /media/cdrom/pool/scripts+configs/vub/usrbin/. /usr/bin/
+cp /media/cdrom/vub/udev/10-usbmount.rules /etc/udev/rules.d/
+cp /media/cdrom/vub/usrbin/vbox-automount-usb /usr/bin/
 chmod +x /usr/bin/vbox-automount-usb
 
 # Start a %post interactive shell (Comment/Uncomment and/or move as needed for debugging)
-/bin/bash
+ /bin/bash
 
 
 # Change back to Virtual Terminal 1 where the Install has been running
