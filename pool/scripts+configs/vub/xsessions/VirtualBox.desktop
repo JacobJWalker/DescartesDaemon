@@ -1,5 +1,0 @@
-[Desktop Entry]
-Type=Application
-Exec=VirtualBox --startvm guestos0001 --fullscreen
-Name=GuestOS0001
-Comment=The First Guest OS
