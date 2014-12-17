@@ -51,9 +51,6 @@ xconfig --depth=16 --resolution=800x600 --defaultdesktop=GNOME --startxonboot
 exec < /dev/tty6 > /dev/tty6 2> /dev/tty6
 chvt 6
 
-# REMOVE LATER
- /bin/ash
-
 
 # Copy Binaries into Appropriate Locations to Have a More Robust initial environment
 cp --recursive /cdrom/pool/binary-i386/* /
@@ -62,6 +59,15 @@ cp --recursive /cdrom/pool/binary-i386/* /
 mkfs -q /dev/ram1 8192
 mkdir -p /variables
 mount /dev/ram1 /variables
+
+
+# Copy files from Vub to /Vub and place in ramdisk (Want to go back and look at possibly)
+mkfs -q /dev/ram2 8192
+mkdir -p /vub/
+mount /dev/ram2 /vub/
+# Move things to vub
+cp --recursive /cdrom/vub/* /vub/
+
 
 # Pre-Set Variables to Customize for Specific Organizations
 # Example data shown below
@@ -146,6 +152,11 @@ exec < /dev/tty1 > /dev/tty1 2> /dev/tty1
 # Unmount RamDisk, but still leaving it in memory
 umount /variables
 
+
+# Unmount Vub, but still leaving it in the memory
+unmount /vub
+
+
 # Automatically erases part of existing operating system, so that it avoids the confirmation dialogue about the drive being mounted
 # See https://bugs.launchpad.net/ubuntu/+source/debian-installer/+bug/1370315
 dd if=/dev/zero of=/dev/sda bs=1M count=10
@@ -170,6 +181,12 @@ chvt 6
 mkdir -p /variables
 mount /dev/ram1 /variables
 
+# Remount Vub to Copy Files
+mkdir -p /vub
+mount /dev/ram2 /vub
+
+
+
 # Import Variables
 export GuestOSHostname=`cat /variables/GuestOSHostname`
 export VirtualImageURL=`cat /variables/VirtualImageURL`
@@ -189,19 +206,19 @@ adduser --disabled-password --gecos "Guest OS 1" guestos0001
 passwd guestos0001 -d
 
 #uninstalls lightdm to prep for SLiM
-apt-get remove lightdm -y
+#apt-get remove lightdm -y
 
 #installs SLiM
-apt-get install slim -y
+#apt-get install slim -y
 
 #installs LXDE (compatability with SLiM)
-apt-get install LXDE -y
+#apt-get install LXDE -y
 
 #Uninstalls Lubuntu-Desktop (for compatability)
-apt-get remove lubuntu-desktop -y
+#apt-get remove lubuntu-desktop -y
 
 #cleanup cleanup everybody everywhere
-apt-get autoremove -y
+#apt-get autoremove -y
 
 # Install VirtualBox from its Repository
 echo 'deb http://download.virtualbox.org/virtualbox/debian trusty contrib' >> /etc/apt/sources.list
@@ -228,11 +245,8 @@ wget $VirtualImageURL
 su -c "VBoxManage import /usr/share/virtualbox/*.ova --vsys 0 --vmname guestos0001" guestos0001
 rm /usr/share/virtualbox/*.ova
 
-# REMOVE LATER
- /bin/bash
-
 # Turns off VirtualBox warning messages
-su -c 'VBoxManage setextradata guestos0001 GUI/SuppressMessages "all"
+# su -c 'VBoxManage setextradata guestos0001 GUI/SuppressMessages "all"' 
 
 # Turns off VirtualBox Mini Toolbar
 su -c 'VBoxManage setextradata guestos0001 GUI/ShowMiniToolBar no' guestos0001
@@ -245,18 +259,18 @@ adduser vubadmin vboxusers
 adduser guestos0001 vboxusers
 
 # Copy VirtualBox XSession
-cp /media/cdrom/vub/xsessions/VirtualBox.desktop /usr/share/xsessions/
+cp /vub/xsessions/VirtualBox.desktop /usr/share/xsessions/
 
 # Copy SLiM Config
-cp /media/cdrom/vub/etc/slim.conf /etc/
+cp /vub/etc/slim.conf /etc/
 
 # Copy Automount UDev Rules
-cp /media/cdrom/vub/udev/10-usbmount.rules /etc/udev/rules.d/
-cp /media/cdrom/vub/usrbin/vbox-automount-usb /usr/bin/
+cp /vub/udev/10-usbmount.rules /etc/udev/rules.d/
+cp /vub/usrbin/vbox-automount-usb /usr/bin/
 chmod +x /usr/bin/vbox-automount-usb
 
 # Start a %post interactive shell (Comment/Uncomment and/or move as needed for debugging)
- /bin/bash
+# /bin/bash
 
 
 # Change back to Virtual Terminal 1 where the Install has been running
