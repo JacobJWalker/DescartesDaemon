@@ -232,6 +232,8 @@ apt-get install build-essential module-assistant -y
 m-a prepare
 /etc/init.d/vboxdrv setup
 
+# Installs smbclient for smbget
+apt-get install smbclient -y
 
 # Download Virtual Image from $VirtualImageURL
 # Currently this is a "quick and dirty" method, of just running both smbget and wget, knowing one or the other will fail.  
