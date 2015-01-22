@@ -252,8 +252,12 @@ apt-get install smbclient -y
 # An "if" statement with some parsing of $VirtualImageURL should be added to have cleaner code, 
 # and better user/password handling should occur as there is currently the assumption that smb has a user and password and wget doesn't
 cd /usr/share/virtualbox
+if [[ $VirtualImageURL == smb://* ]] ;
+then
 smbget $VirtualImageURL --username=$VirtualImageURLUser --password=$VirtualImageURLPasswd
+else
 wget $VirtualImageURL
+fi
 
 # This is a temporary kludge to load the OVA, since there is only one OVA, I can use a wildcard, without knowing/parsing its name.
 su -c "VBoxManage import /usr/share/virtualbox/*.ova --vsys 0 --vmname guestos0001" guestos0001
