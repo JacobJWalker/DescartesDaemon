@@ -76,6 +76,7 @@ cp --recursive /cdrom/vub/* /vub/
 # echo 'http://vubuntubox.org/FreeDos_1.1.ova' > /variables/VirtualImageURL
 # echo 'labassist' > /variables/VirtualImageURLUser
 # echo 'Gr8Minds' > /variables/VirtualImageURLPasswd
+# echo '80' > /variables/percentram
 
 # Get variables that will be used later in the %post script
 
@@ -99,6 +100,10 @@ echo 'with "-vub" added as a suffix'
 echo
 read -p "Enter the main Guest OS Hostname: " GuestOSHostname
 echo $GuestOSHostname > /variables/GuestOSHostname
+echo
+echo
+read -p "Enter percentage of RAM to allot GuestOS (only use integers): " percentram
+echo $percentram > /variables/percentram
 echo
 echo
 
@@ -193,6 +198,13 @@ export VirtualImageURL=`cat /variables/VirtualImageURL`
 export VirtualImageURLUser=`cat /variables/VirtualImageURLUser`
 export VirtualImageURLPasswd=`cat /variables/VirtualImageURLPasswd`
 export VubAdminPasswd=`cat /variables/VubAdminPasswd`
+export percentram=`cat /variables/percentram`
+
+# Does math to figure out guestosram from percentram
+ram=`free -mt | grep Mem | awk '{print $2}'`
+middlemanvar=$(($mem*$percentram))
+guestosram=$(($middlemanvar/100))
+
 
 # Add Users
 # Adds vubdmin User
@@ -246,6 +258,9 @@ wget $VirtualImageURL
 # This is a temporary kludge to load the OVA, since there is only one OVA, I can use a wildcard, without knowing/parsing its name.
 su -c "VBoxManage import /usr/share/virtualbox/*.ova --vsys 0 --vmname guestos0001" guestos0001
 rm /usr/share/virtualbox/*.ova
+
+# Sets memory size of VM 
+# su -c 'VBoxManage modifyvm --memory $guestosram'
 
 # Turns off VirtualBox warning messages
 # su -c 'VBoxManage setextradata guestos0001 GUI/SuppressMessages "all"' 
