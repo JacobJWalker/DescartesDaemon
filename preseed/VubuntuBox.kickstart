@@ -202,8 +202,8 @@ export percentram=`cat /variables/percentram`
 
 # Does math to figure out guestosram from percentram
 ram=`free -mt | grep Mem | awk '{print $2}'`
-middlemanvar=$(($mem*$percentram))
-guestosram=$(($middlemanvar/100))
+ramvartransfer=$(($ram*$percentram))
+guestosram=$(($ramvartransfer/100))
 
 
 # Add Users
