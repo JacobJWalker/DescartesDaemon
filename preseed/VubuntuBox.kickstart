@@ -85,7 +85,16 @@ echo 'VubuntuBox Admin (vubadmin) Password'
 echo '===================================='
 echo
 stty -echo
-read -p "Enter the Password for the vubadmin user: " VubAdminPasswd
+         while [[  $VubAdminPasswd != $VubAdminPasswd2 ]]; do        
+             read -p "Enter the Password for the vubadmin user: " VubAdminPasswd
+			 read -p "Confirm vubadmin Password: " VubAdminPasswd2
+ 			 if [[ $VubAdminPasswd != $VubAdminPasswd2 ]];
+				 then
+ 				 	 echo "Passwords do not match. Please retry"
+				 else
+			  		 :
+			 fi
+         done
 stty echo
 echo $VubAdminPasswd > /variables/VubAdminPasswd
 echo
@@ -122,9 +131,26 @@ echo
 read -p "If required, enter the username for the Virtual Image URL: " VirtualImageURLUser
 echo $VirtualImageURLUser > /variables/VirtualImageURLUser
 echo
-stty -echo
-read -p "If required, enter the password for the Virtual Image URL: " VirtualImageURLPasswd
-stty echo
+if [[ $VirtualImageURL == smb://* ]];
+then
+	read -p "If required, enter the username for the Virtual Image URL: " VirtualImageURLUser
+	echo $VirtualImageURLUser > /variables/VirtualImageURLUser
+	echo
+	stty -echo
+        	 while [[  $VirtualImageURLPasswd != $VirtualImageURLPasswd2 ]]; do        
+        		 read -p "If required, enter the password for the Virtual Image URL: " VirtualImageURLPasswd
+			 	 read -p "Confirm vubadmin Password: " VirtualImageURLPasswd2
+				 if [[ $VirtualImageURLPasswd != $VirtualImageURLPasswd2 ]];
+				 then
+ 				 	 echo "Passwords do not match. Please retry"
+				 else
+			  	 	 :
+			 	fi
+         	 done
+	stty echo
+else
+	:
+fi
 echo $VirtualImageURLPasswd > /variables/VirtualImageURLPasswd
 echo
 echo
@@ -249,10 +275,9 @@ apt-get install smbclient -y
 
 # Download Virtual Image from $VirtualImageURL
 # Currently this is a "quick and dirty" method, of just running both smbget and wget, knowing one or the other will fail.  
-# An "if" statement with some parsing of $VirtualImageURL should be added to have cleaner code, 
-# and better user/password handling should occur as there is currently the assumption that smb has a user and password and wget doesn't
+# Better user/password handling should occur as there is currently the assumption that smb has a user and password and wget doesn't
 cd /usr/share/virtualbox
-if [[ $VirtualImageURL == smb://* ]] ;
+if [[ $VirtualImageURL == smb://* ]];
 then
 smbget $VirtualImageURL --username=$VirtualImageURLUser --password=$VirtualImageURLPasswd
 else
@@ -264,10 +289,12 @@ su -c "VBoxManage import /usr/share/virtualbox/*.ova --vsys 0 --vmname guestos00
 rm /usr/share/virtualbox/*.ova
 
 # Sets memory size of VM 
-# su -c 'VBoxManage modifyvm --memory $guestosram'
+su -c 'VBoxManage modifyvm --memory $guestosram' guestos0001
 
 # Turns off VirtualBox warning messages
-# su -c 'VBoxManage setextradata guestos0001 GUI/SuppressMessages "all"' 
+su -c 'VBoxManage setextradata global GUI/SuppressMessages "remindAboutAutoCapture,remindAboutMouseIntegrationOn,showRuntimeError.warning.HostAudioNotResponding,remindAboutGoingSeamless,remindAboutInputCapture,remindAboutGoingFullscreen,remindAboutMouseIntegrationOff,confirmGoingSeamless,confirmInputCapture,remindAboutPausedVMInput,confirmVMReset,confirmGoingFullscreen,remindAboutWrongColorDepth"' guestos0001
+
+
 
 # Turns off VirtualBox Mini Toolbar
 su -c 'VBoxManage setextradata guestos0001 GUI/ShowMiniToolBar no' guestos0001
