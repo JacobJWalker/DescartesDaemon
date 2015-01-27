@@ -95,6 +95,15 @@ echo $VubAdminPasswd > /variables/VubAdminPasswd
 echo
 echo
 
+# Get number of Virtual Machines the user would like to install at this time
+echo 'Virtual Machine Number'
+echo '================='
+read -p "How many Virtual Machines would you like?" NumberOfVMs
+echo $NumberOfVMs > /variables/NumberOfVMs
+echo
+echo
+
+
 # Get Guest OS Hostname, which will also be used as part of the Host OS Hostname
 echo
 echo 'Guest OS Hostname'
@@ -121,44 +130,50 @@ echo
 
 
 # Get URL to be used to download Virtual Image file at the end of the installation
-echo 'Virtual Machine OVA URL'
-echo '======================='
-echo
-echo 'VubuntuBox will download a virtual image after installing itself.'
-echo 'It can use http, https, ftp, or smb (windows file sharing)'
-echo 'It will use either wget or smbget.  Read their documentation for more info.'
-echo
-read -p "Enter the full URL of the Virtual Image: " VirtualImageURL
-echo $VirtualImageURL > /variables/VirtualImageURL
-echo
+export NumberOfVMs=`cat /variables/NumberOfVMs`
+while [  $NumberOfVMs -gt 0 ];do
+	echo Virtual Machine OVA URL for guestos`printf %04g $NumberOfVMs`
+	echo '======================='
+	echo
+	echo 'VubuntuBox will download a virtual image after installing itself.'
+	echo 'It can use http, https, ftp, or smb (windows file sharing)'
+	echo 'It will use either wget or smbget.  Read their documentation for more info.'
+	echo
+	read -p "Enter the full URL of the Virtual Image: " VirtualImageURL$(printf %04g $NumberOfVMs)
+	echo $VirtualImageURL > /variables/VirtualImageURL$(printf %04g $NumberOfVMs)
+	echo
 
-if [[ $VirtualImageURL == smb://* ]];
-then
-	read -p "If required, enter the username for the Virtual Image URL: " VirtualImageURLUser
-	echo $VirtualImageURLUser > /variables/VirtualImageURLUser
+	if [[ $VirtualImageURL = smb://* ]];
+	then
+		read -p "If required, enter the username for the Virtual Image URL: " VirtualImageURLUser$(printf %04g $NumberOfVMs)
+		echo $VirtualImageURLUser > /variables/VirtualImageURLUser$(printf %04g $NumberOfVMs)
+		echo
+		read -p "If required, enter the username for the Virtual Image URL: " VirtualImageURLUser$(printf %04g $NumberOfVMs)
+		echo $VirtualImageURLUser > /variables/VirtualImageURLUser$(printf %04g $NumberOfVMs)
+		echo
+		stty -echo
+	        	 while [[  $VirtualImageURLPasswd != $VirtualImageURLPasswd2 ]]; do        
+	        		 read -p "If required, enter the password for the Virtual Image URL: " VirtualImageURLPasswd$(printf %04g $NumberOfVMs)
+	        		 echo
+				 	 read -p "Confirm vubadmin Password: " VirtualImageURLPasswd2$(printf %04g $NumberOfVMs)
+					 if [[ $VirtualImageURLPasswd != $VirtualImageURLPasswd2 ]];
+					 then
+					 	 echo
+	 				 	 echo "Passwords do not match. Please retry"
+	 				 	 echo
+					 else
+				  	 	 :
+				 	fi
+	         	 done
+		stty echo
+	else
+		:
+	fi
+	echo $VirtualImageURLPasswd > /variables/VirtualImageURLPasswd$(printf %04g $NumberOfVMs)
 	echo
-	read -p "If required, enter the username for the Virtual Image URL: " VirtualImageURLUser
-	echo $VirtualImageURLUser > /variables/VirtualImageURLUser
 	echo
-	stty -echo
-        	 while [[  $VirtualImageURLPasswd != $VirtualImageURLPasswd2 ]]; do        
-        		 read -p "If required, enter the password for the Virtual Image URL: " VirtualImageURLPasswd
-        		 echo
-			 	 read -p "Confirm vubadmin Password: " VirtualImageURLPasswd2
-				 if [[ $VirtualImageURLPasswd != $VirtualImageURLPasswd2 ]];
-				 then
-				 	 echo
- 				 	 echo "Passwords do not match. Please retry"
- 				 	 echo
-				 else
-			  	 	 :
-			 	fi
-         	 done
-	stty echo
-else
-	:
-fi
-echo $VirtualImageURLPasswd > /variables/VirtualImageURLPasswd
+let NumberOfVMs=NumberOfVMs-1
+done
 echo
 echo
 
@@ -222,11 +237,15 @@ mount /dev/ram1 /variables
 
 # Import Variables
 export GuestOSHostname=`cat /variables/GuestOSHostname`
-export VirtualImageURL=`cat /variables/VirtualImageURL`
-export VirtualImageURLUser=`cat /variables/VirtualImageURLUser`
-export VirtualImageURLPasswd=`cat /variables/VirtualImageURLPasswd`
 export VubAdminPasswd=`cat /variables/VubAdminPasswd`
 export percentram=`cat /variables/percentram`
+export NumberOfVMs=`cat /variables/NumberOfVMs`
+while [  $NumberOfVMs -gt 0 ];do
+export VirtualImageURL$(printf %04g $NumberOfVMs)=`cat /variables/VirtualImageURL$(printf %04g $NumberOfVMs)`
+export VirtualImageURLUser$(printf %04g $NumberOfVMs)=`cat /variables/VirtualImageURLUser$(printf %04g $NumberOfVMs)`
+export VirtualImageURLPasswd$(printf %04g $NumberOfVMs)=`cat /variables/VirtualImageURLPasswd$(printf %04g $NumberOfVMs)`
+let NumberOfVMs=NumberOfVMs-1
+done
 
 # Does math to figure out guestosram from percentram
 ram=`free -mt | grep Mem | awk '{print $2}'`
@@ -241,9 +260,14 @@ adduser --disabled-password --gecos "VirtualBox Admin" vubadmin
 echo "vubadmin:$VubAdminPasswd" | chpasswd
 usermod -a -G sudo vubadmin
 
-# Adds the GuestOS User
-adduser --disabled-password --gecos "Guest OS 1" guestos0001
-passwd guestos0001 -d
+# Adds the GuestOS Users
+export NumberOfVMs=`cat /variables/NumberOfVMs`
+while [  $NumberOfVMs -gt 0 ];do
+	guestosname=guestos$(printf %04g $NumberOfVMs)
+	adduser --disabled-password --gecos $guestosname guestos`printf %04g $NumberOfVMs`
+	passwd guestos`printf %04g $NumberOfVMs` -d
+let NumberOfVMs=NumberOfVMs-1
+done
 
 # Replaces lightdm with SLiM
 # Replaces Lubuntu-Desktop with LXDE (for compatability)
@@ -270,33 +294,54 @@ apt-get install smbclient -y
 
 # Download Virtual Image from $VirtualImageURL
 # Better user/password handling should occur as there is currently the assumption that smb has a user and password and wget doesn't
-cd /usr/share/virtualbox
-if [[ $VirtualImageURL == smb://* ]];
-then
-	 smbget $VirtualImageURL --username=$VirtualImageURLUser --password=$VirtualImageURLPasswd
-else
-	 wget $VirtualImageURL
-fi
+export NumberOfVMs=`cat /variables/NumberOfVMs`
+while [  $NumberOfVMs -gt 0 ];do
+	cd /usr/share/virtualbox
+	if [[ $VirtualImageURL = smb://* ]];
+	then
+		 smbget $VirtualImageURL --username=$VirtualImageURLUser --password=$VirtualImageURLPasswd
+	else
+		 wget $VirtualImageURL
+	fi
+	vm *.ova guestos$(printf %04g $NumberOfVMs).ova
+let NumberOfVMs=NumberOfVMs-1
+done
 
-# This is a temporary kludge to load the OVA, since there is only one OVA, I can use a wildcard, without knowing/parsing its name.
-su -c "VBoxManage import /usr/share/virtualbox/*.ova --vsys 0 --vmname guestos0001" guestos0001
+# Imports the VMs using username specific - but then can remove ALL ovas as they should be removed and can keep the code cleaner
+export NumberOfVMs=`cat /variables/NumberOfVMs`
+while [  $NumberOfVMs -gt 0 ];do
+	echo su -c "VBoxManage import /usr/share/virtualbox/guestos$(printf %04g $NumberOfVMs).ova --vsys 0 --vmname guestos$(printf %04g $NumberOfVMs)" guestos$(printf %04g $NumberOfVMs)
+let NumberOfVMs=NumberOfVMs-1
+done
 rm /usr/share/virtualbox/*.ova
 
 # Sets memory size of VM 
-su -c 'VBoxManage modifyvm --memory $guestosram' guestos0001
+export NumberOfVMs=`cat /variables/NumberOfVMs`
+while [  $NumberOfVMs -gt 0 ];do
+	 su -c 'VBoxManage modifyvm guestos$(printf %04g $NumberOfVMs) --memory $guestosram' guestos$(printf %04g $NumberOfVMs)
+     let NumberOfVMs=NumberOfVMs-1
+done
 
 # Turns off VirtualBox warning messages
 su -c 'VBoxManage setextradata global GUI/SuppressMessages remindAboutAutoCapture,confirmInputCapture,remindAboutMouseIntegration,remindAboutWrongColorDepth,showRuntimeError.warning.HostAudioNotResponding,remindAboutGoingSeamless,remindAboutInputCapture,remindAboutGoingFullscreen,remindAboutMouseIntegrationOff,confirmGoingSeamless,remindAboutPausedVMInput,confirmVMReset,confirmGoingFullscreen' guestos0001
 
 # Turns off VirtualBox Mini Toolbar
-su -c 'VBoxManage setextradata guestos0001 GUI/ShowMiniToolBar no' guestos0001
+export NumberOfVMs=`cat /variables/NumberOfVMs`
+while [  $NumberOfVMs -gt 0 ];do
+	 su -c 'VBoxManage setextradata guestos$(printf %04g $NumberOfVMs) GUI/ShowMiniToolBar no' guestos$(printf %04g $NumberOfVMs)
+     let NumberOfVMs=NumberOfVMs-1
+done
 
 # Turns off VirtualBox menus, shortcut keys, etc.
 su -c 'VBoxManage setextradata global GUI/Input/MachineShortcuts "TakeScreenshot=None,MouseIntegration=None,TypeCAD=None,TypeCABS=None,Pause=None,Reset=None,SaveState=None,Shutdown=None,PowerOff=None,Close=None,FullscreenMode=None,SeamlessMode=None,ScaleMode=None,WindowAdjust=None,PopupMenu=None, SettingsDialog=None,InformationDialog=None,NetworkAdaptersDailog=None,SharedFoldersDialog=None,InstallGuestAdditions=None"' guestos0001
 
 # Fixes USB Issue
 adduser vubadmin vboxusers
-adduser guestos0001 vboxusers
+export NumberOfVMs=`cat /variables/NumberOfVMs`
+while [  $NumberOfVMs -gt 0 ];do
+	 adduser guestos$(printf %04g $NumberOfVMs) vboxusers
+     let NumberOfVMs=NumberOfVMs-1
+done
 
 # Copy VirtualBox XSession
 cp /media/cdrom/pool/config_files/xsessions/VirtualBox.desktop /usr/share/xsessions/
@@ -311,6 +356,24 @@ chmod +x /usr/bin/vbox-automount-usb
 
 # Start a %post interactive shell (Comment/Uncomment and/or move as needed for debugging)
 /bin/bash
+
+# This is one long note about how to implament the loop used for multi user install
+echo
+: <<'END'
+For every time an action needs to modify/create GuestOS user
+export NumberOfVMs=`cat /variables/NumberOfVMs`
+while [  $NumberOfVMs -gt 0 ];do
+     guestos$(printf %04g $NumberOfVMs) # Printf is for zero padding 1 --> 0001
+     let NumberOfVMs=NumberOfVMs-1
+done
+
+If told 3 VMs, expected output is:
+GuestOS0003
+GuestOS0002
+GuestOS0001
+END
+echo
+
 
 
 # Change back to Virtual Terminal 1 where the Install has been running
