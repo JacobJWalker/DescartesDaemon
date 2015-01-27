@@ -106,7 +106,16 @@ read -p "Enter the main Guest OS Hostname: " GuestOSHostname
 echo $GuestOSHostname > /variables/GuestOSHostname
 echo
 echo
-read -p "Enter percentage of RAM to allot GuestOS (only use integers): " percentram
+while [[ $percentokay != "okay" ]]; do
+	 read -p "Enter percentage of RAM to allot GuestOS (only use integers): " percentram
+	 if (( $percentram < 100 )); then
+	 	percentokay="okay"
+	 else
+	 	echo
+	 	echo "The number you selected is either too high or otherwise incorrect. Please try again"
+	 	echo
+	 fi
+done
 echo $percentram > /variables/percentram
 echo
 echo
