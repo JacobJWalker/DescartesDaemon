@@ -15,6 +15,6 @@
       if [ ! -z "$busdevice" ]; then
         address=$(VBoxManage list usbhost | grep "Address:" | grep $bus device | sed -e 's/Address://' -e 's/^[ \t]*//')
         if [ ! -z "$address" ]; then
-          su - crutchcorn -c "VBoxManage controlvm hccts usbattach $address"
+          su - guestos0001 -c "VBoxManage controlvm guestos0001 usbattach $address"
         fi
       fi

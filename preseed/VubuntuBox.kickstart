@@ -108,19 +108,19 @@ echo
 echo
 
 # Gets amount of RAM to be alliocated to each VM
-echo RAM Alliocation for VM Machine
-echo '======================='
-while [[ $percentokay != "okay" ]]; do
-	 read -p "Enter percentage of RAM to allot GuestOS (only use integers): " percentram
-	 if (( $percentram < 100 )); then
-	 	percentokay="okay"
-	 else
-	 	echo
-	 	echo "The number you selected is either too high or otherwise incorrect. Please try again"
-	 	echo
-	 fi
-done
-echo $percentram > /variables/percentram
+#echo RAM Alliocation for VM Machine
+#echo '======================='
+#while [ $percentokay -lt 10 ]; do
+#	 read -p "Enter percentage of RAM to allot GuestOS (only use integers): " percentram
+#	 if [ $percentram -lt 100 ]; then
+#			 	percentokay=100
+#	 else
+#	 	echo
+#	 	echo "The number you selected is either too high or otherwise incorrect. Please try again"
+#	 	echo
+#	 fi
+#done
+#echo $percentram > /variables/percentram
 echo
 echo
 
@@ -137,7 +137,7 @@ read -p "Enter the full URL of the Virtual Image: " VirtualImageURL
 echo $VirtualImageURL > /variables/VirtualImageURL
 echo
 
-if [[ $VirtualImageURL == smb://* ]];
+if [[ $VirtualImageURL=smb://* ]];
 then
 	read -p "If required, enter the username for the Virtual Image URL: " VirtualImageURLUser
 	echo $VirtualImageURLUser > /variables/VirtualImageURLUser
@@ -231,12 +231,12 @@ export VirtualImageURL=`cat /variables/VirtualImageURL`
 export VirtualImageURLUser=`cat /variables/VirtualImageURLUser`
 export VirtualImageURLPasswd=`cat /variables/VirtualImageURLPasswd`
 export VubAdminPasswd=`cat /variables/VubAdminPasswd`
-export percentram=`cat /variables/percentram`
+#export percentram=`cat /variables/percentram`
 
 # Does math to figure out guestosram from percentram
-ram=`free -mt | grep Mem | awk '{print $2}'`
-ramvartransfer=$(($ram*$percentram))
-guestosram=$(($ramvartransfer/100))
+#ram=`free -mt | grep Mem | awk '{print $2}'`
+#ramvartransfer=$(($ram*$percentram))
+#guestosram=$(($ramvartransfer/100))
 
 
 # Add Users
@@ -288,7 +288,7 @@ su -c "VBoxManage import /usr/share/virtualbox/*.ova --vsys 0 --vmname guestos00
 rm /usr/share/virtualbox/*.ova
 
 # Sets memory size of VM 
-su -c 'VBoxManage modifyvm --memory $guestosram' guestos0001
+su -c 'VBoxManage modifyvm guestos0001 --memory $guestosram' guestos0001
 
 # Turns off VirtualBox warning messages
 su -c 'VBoxManage setextradata global GUI/SuppressMessages remindAboutAutoCapture,confirmInputCapture,remindAboutMouseIntegration,remindAboutWrongColorDepth,showRuntimeError.warning.HostAudioNotResponding,remindAboutGoingSeamless,remindAboutInputCapture,remindAboutGoingFullscreen,remindAboutMouseIntegrationOff,confirmGoingSeamless,remindAboutPausedVMInput,confirmVMReset,confirmGoingFullscreen' guestos0001
@@ -317,6 +317,9 @@ chmod +x /usr/bin/vbox-automount-usb
 # Start a %post interactive shell (Comment/Uncomment and/or move as needed for debugging)
 /bin/bash
 
+# Installation Logs - https://help.ubuntu.com/community/KickstartCompatibility#Installation_Logs
+#cd /var/log/installer
+#cat syslog | grep kickseed
 
 # Change back to Virtual Terminal 1 where the Install has been running
 # From http://hintshop.ludvig.co.nz/show/interactive-pre-post-install-scripts-redhat-kickstart/
