@@ -120,6 +120,23 @@ echo
 echo
 
 
+# Gets amount of RAM to be alliocated to each VM
+-read -p "Enter percentage of RAM to allot GuestOS$(printf %04g $NumberOfVMs) (only use integers): " percentram$(printf %04g $NumberOfVMs)
+while [[ $percentokay != "okay" ]]; do
+		 echo RAM Alliocation for guestos`printf %04g $NumberOfVMs`
+		 echo '======================='
+		 echo
+		 read -p "Enter percentage of RAM to allot GuestOS$(printf %04g $NumberOfVMs) (only use integers): " percentram$(printf %04g $NumberOfVMs)
+		 if (( $percentram < 100 )); then
+		 	percentokay$(printf %04g $NumberOfVMs)="okay"
+		 else
+		 	echo
+		 	echo "The number you selected is either too high or otherwise incorrect. Please try again"
+		 	echo
+		 fi
+	done
+
+
 # Get URL to be used to download Virtual Image file at the end of the installation
 export NumberOfVMs=`cat /variables/NumberOfVMs`
 while [  $NumberOfVMs -gt 0 ];do
