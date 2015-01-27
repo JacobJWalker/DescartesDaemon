@@ -116,7 +116,6 @@ while [[ $percentokay != "okay" ]]; do
 	 	echo
 	 fi
 done
-echo $percentram > /variables/percentram
 echo
 echo
 
@@ -270,7 +269,6 @@ m-a prepare
 apt-get install smbclient -y
 
 # Download Virtual Image from $VirtualImageURL
-# Currently this is a "quick and dirty" method, of just running both smbget and wget, knowing one or the other will fail.  
 # Better user/password handling should occur as there is currently the assumption that smb has a user and password and wget doesn't
 cd /usr/share/virtualbox
 if [[ $VirtualImageURL == smb://* ]];
@@ -288,7 +286,7 @@ rm /usr/share/virtualbox/*.ova
 su -c 'VBoxManage modifyvm --memory $guestosram' guestos0001
 
 # Turns off VirtualBox warning messages
-su -c 'VBoxManage setextradata global GUI/SuppressMessages "remindAboutAutoCapture,remindAboutMouseIntegrationOn,showRuntimeError.warning.HostAudioNotResponding,remindAboutGoingSeamless,remindAboutInputCapture,remindAboutGoingFullscreen,remindAboutMouseIntegrationOff,confirmGoingSeamless,confirmInputCapture,remindAboutPausedVMInput,confirmVMReset,confirmGoingFullscreen,remindAboutWrongColorDepth"' guestos0001
+su -c 'VBoxManage setextradata global GUI/SuppressMessages remindAboutAutoCapture,confirmInputCapture,remindAboutMouseIntegration,remindAboutWrongColorDepth,showRuntimeError.warning.HostAudioNotResponding,remindAboutGoingSeamless,remindAboutInputCapture,remindAboutGoingFullscreen,remindAboutMouseIntegrationOff,confirmGoingSeamless,remindAboutPausedVMInput,confirmVMReset,confirmGoingFullscreen' guestos0001
 
 # Turns off VirtualBox Mini Toolbar
 su -c 'VBoxManage setextradata guestos0001 GUI/ShowMiniToolBar no' guestos0001
