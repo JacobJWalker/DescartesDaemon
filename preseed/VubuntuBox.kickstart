@@ -78,11 +78,11 @@ echo 'VubuntuBox Admin (vubadmin) Password'
 echo '===================================='
 echo
 stty -echo
-         while [[  $VubAdminPasswd != $VubAdminPasswd2 ]]; do        
+         while [  $VubAdminPasswd != $VubAdminPasswd2 ]; do        
              read -p "Enter the Password for the vubadmin user: " VubAdminPasswd
              echo
 			 read -p "Confirm vubadmin Password: " VubAdminPasswd2
- 			 if [[ $VubAdminPasswd != $VubAdminPasswd2 ]];
+ 			 if [ $VubAdminPasswd != $VubAdminPasswd2 ];
 				 then
 				 	 echo
  				 	 echo "Passwords do not match. Please retry"
@@ -111,21 +111,20 @@ echo
 
 
 # Gets amount of RAM to be alliocated to each VM
-#echo RAM Alliocation for VM Machine
-#echo '======================='
-#while [ $percentokay -lt 10 ]; do
-#	 read -p "Enter percentage of RAM to allot GuestOS (only use integers): " percentram
-#	 if [ $percentram -lt 100 ]; then
-#			 	percentokay=100
-#	 else
-#	 	echo
-#	 	echo "The number you selected is either too high or otherwise incorrect. Please try again"
-#	 	echo
-#	 fi
-#done
-#echo $percentram > /variables/percentram
+echo RAM Alliocation for VM Machine
+echo '======================='
+while [ "$percentokay" != "okay" ]; do
+	 read -p "Enter percentage of RAM to allot GuestOS (only use integers): " percentram
+	 if [ "$percentram" -lt 100 ]; then
+			 	percentokay="okay"
+	 else
+	 	echo
+	 	echo "The number you selected is either too high or otherwise incorrect. Please try again"
+	 	echo
+	 fi
+done
+echo $percentram > /variables/percentram
 
-# Get Guest OS Hostname, which will also be used as part of the Host OS Hostname
 
 
 echo
@@ -134,7 +133,7 @@ echo '================='
 echo 'This will change the VM to bridged'
 echo 'with the working network adapter'
 echo
-read -p "Would you like to change the VM to bridged? " bridged
+read -p "Would you like to change the VM to bridged? (y/n) " bridged
 echo $bridged > /variables/bridged
 echo
 
@@ -151,33 +150,32 @@ read -p "Enter the full URL of the Virtual Image: " VirtualImageURL
 echo $VirtualImageURL > /variables/VirtualImageURL
 echo
 
-if [[ $VirtualImageURL=smb://* ]];
-then
-	read -p "If required, enter the username for the Virtual Image URL: " VirtualImageURLUser
-	echo $VirtualImageURLUser > /variables/VirtualImageURLUser
+case $VirtualImageURL in
+smb://*) 
 	echo
 	read -p "If required, enter the username for the Virtual Image URL: " VirtualImageURLUser
 	echo $VirtualImageURLUser > /variables/VirtualImageURLUser
 	echo
 	stty -echo
-        	 while [[  $VirtualImageURLPasswd != $VirtualImageURLPasswd2 ]]; do        
+      	while [ $VirtualImageURLPasswd != $VirtualImageURLPasswd2 ]; do        
         		 read -p "If required, enter the password for the Virtual Image URL: " VirtualImageURLPasswd
         		 echo
 			 	 read -p "Confirm vubadmin Password: " VirtualImageURLPasswd2
-				 if [[ $VirtualImageURLPasswd != $VirtualImageURLPasswd2 ]];
-				 then
-				 	 echo
- 				 	 echo "Passwords do not match. Please retry"
- 				 	 echo
-				 else
-			  	 	 :
-			 	fi
-         	 done
+			 if [ $VirtualImageURLPasswd != $VirtualImageURLPasswd2 ];
+			 then
+			 	 echo
+			 	 echo "Passwords do not match. Please retry"
+			 	 echo
+			 else
+		  	 	 echo $VirtualImageURLPasswd > /variables/VirtualImageURLPasswd
+		 	 fi
+       done
 	stty echo
-else
+	;;
+*) 
 	:
-fi
-echo $VirtualImageURLPasswd > /variables/VirtualImageURLPasswd
+	;;
+esac
 echo
 echo
 
@@ -246,12 +244,12 @@ export VirtualImageURLUser=`cat /variables/VirtualImageURLUser`
 export VirtualImageURLPasswd=`cat /variables/VirtualImageURLPasswd`
 export VubAdminPasswd=`cat /variables/VubAdminPasswd`
 export bridged=`cat /variables/bridged`
-#export percentram=`cat /variables/percentram`
+export percentram=`cat /variables/percentram`
 
 # Does math to figure out guestosram from percentram
-#ram=`free -mt | grep Mem | awk '{print $2}'`
-#ramvartransfer=$(($ram*$percentram))
-#guestosram=$(($ramvartransfer/100))
+ram=`free -mt | grep Mem | awk '{print $2}'`
+ramvartransfer=$(($ram*$percentram))
+guestosram=$(($ramvartransfer/100))
 
 
 # Add Users
@@ -291,12 +289,14 @@ apt-get install smbclient -y
 # Download Virtual Image from $VirtualImageURL
 # Better user/password handling should occur as there is currently the assumption that smb has a user and password and wget doesn't
 cd /usr/share/virtualbox
-if [[ $VirtualImageURL == smb://* ]];
-then
-	 smbget $VirtualImageURL --username=$VirtualImageURLUser --password=$VirtualImageURLPasswd
-else
-	 wget $VirtualImageURL
-fi
+case $VirtualImageURL in
+  	 smb://*) 
+		smbget $VirtualImageURL --username=$VirtualImageURLUser --password=$VirtualImageURLPasswd 
+		;;
+     *) 
+		wget $VirtualImageURL
+		;;
+esac
 
 # This is a temporary kludge to load the OVA, since there is only one OVA, I can use a wildcard, without knowing/parsing its name.
 su -c "VBoxManage import /usr/share/virtualbox/*.ova --vsys 0 --vmname guestos0001" guestos0001
@@ -307,18 +307,16 @@ su -c 'VBoxManage modifyvm guestos0001 --memory $guestosram' guestos0001
 
 # Changes VM to proper bridged if asked
 # Temporary kludge. This program does not work if WiFi and Ethernet are both being used
-shopt -s nocasematch
-if [[ $bridged =~ (y|yes) ]];
-then
+bridged="y"
+if [[ "$bridged" = "y" ]]; then
 	vboxmanage list bridgedifs | grep -w "Name" | awk '{ print $2 }' | while read output;
 	do
 	intertube=0
 	echo "begin ping"
 	internetdriver=$output
 	ping -c 1 -I $internetdriver google.com
-	if [ $? -eq  0 ]
-	then
-	     echo "ping success";
+	if [ $? -eq  0 ]; then
+	     echo "ping success"
 	     something=$internetdriver
 		 su -c 'VBoxManage modifyvm guestos0001 --nic1 bridged' guestos0001
 		 su -c 'VBoxManage modifyvm guestos0001 --bridgeadapter1 $something' guestos0001
