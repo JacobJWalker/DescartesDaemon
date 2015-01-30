@@ -69,6 +69,7 @@ mount /dev/ram1 /variables
 # echo 'labassist' > /variables/VirtualImageURLUser
 # echo 'Gr8Minds' > /variables/VirtualImageURLPasswd
 # echo '80' > /variables/percentram
+# echo 'yes' > /variables/bridged
 
 # Get variables that will be used later in the %post script
 
@@ -95,6 +96,7 @@ echo $VubAdminPasswd > /variables/VubAdminPasswd
 echo
 echo
 
+
 # Get Guest OS Hostname, which will also be used as part of the Host OS Hostname
 echo
 echo 'Guest OS Hostname'
@@ -106,6 +108,7 @@ read -p "Enter the main Guest OS Hostname: " GuestOSHostname
 echo $GuestOSHostname > /variables/GuestOSHostname
 echo
 echo
+
 
 # Gets amount of RAM to be alliocated to each VM
 #echo RAM Alliocation for VM Machine
@@ -121,7 +124,18 @@ echo
 #	 fi
 #done
 #echo $percentram > /variables/percentram
+
+# Get Guest OS Hostname, which will also be used as part of the Host OS Hostname
+
+
 echo
+echo 'Fix Bridged Adapter Problem?'
+echo '================='
+echo 'This will change the VM to bridged'
+echo 'with the working network adapter'
+echo
+read -p "Would you like to change the VM to bridged? " bridged
+echo $bridged > /variables/bridged
 echo
 
 
@@ -231,6 +245,7 @@ export VirtualImageURL=`cat /variables/VirtualImageURL`
 export VirtualImageURLUser=`cat /variables/VirtualImageURLUser`
 export VirtualImageURLPasswd=`cat /variables/VirtualImageURLPasswd`
 export VubAdminPasswd=`cat /variables/VubAdminPasswd`
+export bridged=`cat /variables/bridged`
 #export percentram=`cat /variables/percentram`
 
 # Does math to figure out guestosram from percentram
@@ -289,6 +304,31 @@ rm /usr/share/virtualbox/*.ova
 
 # Sets memory size of VM 
 su -c 'VBoxManage modifyvm guestos0001 --memory $guestosram' guestos0001
+
+# Changes VM to proper bridged if asked
+# Temporary kludge. This program does not work if WiFi and Ethernet are both being used
+shopt -s nocasematch
+if [[ $bridged =~ (y|yes) ]];
+then
+	vboxmanage list bridgedifs | grep -w "Name" | awk '{ print $2 }' | while read output;
+	do
+	intertube=0
+	echo "begin ping"
+	internetdriver=$output
+	ping -c 1 -I $internetdriver google.com
+	if [ $? -eq  0 ]
+	then
+	     echo "ping success";
+	     something=$internetdriver
+		 su -c 'VBoxManage modifyvm guestos0001 --nic1 bridged' guestos0001
+		 su -c 'VBoxManage modifyvm guestos0001 --bridgeadapter1 $something' guestos0001
+	else
+		 echo "fail ping"           
+	fi
+	done
+else
+	:
+fi
 
 # Turns off VirtualBox warning messages
 su -c 'VBoxManage setextradata global GUI/SuppressMessages remindAboutAutoCapture,confirmInputCapture,remindAboutMouseIntegration,remindAboutWrongColorDepth,showRuntimeError.warning.HostAudioNotResponding,remindAboutGoingSeamless,remindAboutInputCapture,remindAboutGoingFullscreen,remindAboutMouseIntegrationOff,confirmGoingSeamless,remindAboutPausedVMInput,confirmVMReset,confirmGoingFullscreen' guestos0001
