@@ -117,13 +117,14 @@ while [ "$percentokay" != "okay" ]; do
 	 read -p "Enter percentage of RAM to allot GuestOS (only use integers): " percentram
 	 if [ "$percentram" -lt 100 ]; then
 			 	percentokay="okay"
+			 	echo $percentram > /variables/percentram
 	 else
 	 	echo
 	 	echo "The number you selected is either too high or otherwise incorrect. Please try again"
 	 	echo
 	 fi
 done
-echo $percentram > /variables/percentram
+
 
 
 
@@ -276,6 +277,8 @@ echo 'deb http://download.virtualbox.org/virtualbox/debian trusty contrib' >> /e
 wget -q https://www.virtualbox.org/download/oracle_vbox.asc -O- | apt-key add -
 apt-get update
 apt-get install virtualbox-4.3 -y
+#apt-get install gdebi
+#gdebi /media/cdrom/pool/config_files/deb/virtualbox_4.3.deb
 
 # Fixes Kernel driver not installed problem
 # From http://www.binarytides.com/fix-vbox-kernel-driver-error/
@@ -303,12 +306,11 @@ su -c "VBoxManage import /usr/share/virtualbox/*.ova --vsys 0 --vmname guestos00
 rm /usr/share/virtualbox/*.ova
 
 # Sets memory size of VM 
-su -c 'VBoxManage modifyvm guestos0001 --memory $guestosram' guestos0001
+ su -c 'VBoxManage modifyvm guestos0001 --memory $guestosram' guestos0001
 
 # Changes VM to proper bridged if asked
 # Temporary kludge. This program does not work if WiFi and Ethernet are both being used
-bridged="y"
-if [[ "$bridged" = "y" ]]; then
+if [ "$bridged" = "y" ]; then
 	vboxmanage list bridgedifs | grep -w "Name" | awk '{ print $2 }' | while read output;
 	do
 	intertube=0
