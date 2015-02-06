@@ -249,8 +249,8 @@ export percentram=`cat /variables/percentram`
 
 # Does math to figure out guestosram from percentram
 ram=`free -mt | grep Mem | awk '{print $2}'`
-ramvartransfer=$(($ram*$percentram))
-guestosram=$(($ramvartransfer/100))
+ramvartransfer=`expr $ram \\* $percentram`
+guestosram=`expr $ramvartransfer / 100`
 
 
 # Add Users
@@ -310,25 +310,26 @@ rm /usr/share/virtualbox/*.ova
 
 # Changes VM to proper bridged if asked
 # Temporary kludge. This program does not work if WiFi and Ethernet are both being used
-if [ "$bridged" = "y" ]; then
+case $bridged in
+"y")
 	vboxmanage list bridgedifs | grep -w "Name" | awk '{ print $2 }' | while read output;
 	do
 	intertube=0
 	echo "begin ping"
-	internetdriver=$output
-	ping -c 1 -I $internetdriver google.com
+	ping -c 1 -I $output google.com
 	if [ $? -eq  0 ]; then
-	     echo "ping success"
-	     something=$internetdriver
+	     ping success
 		 su -c 'VBoxManage modifyvm guestos0001 --nic1 bridged' guestos0001
-		 su -c 'VBoxManage modifyvm guestos0001 --bridgeadapter1 $something' guestos0001
+		 su -c 'VBoxManage modifyvm guestos0001 --bridgeadapter1 $output' guestos0001
 	else
 		 echo "fail ping"           
 	fi
 	done
-else
+	;;
+*)
 	:
-fi
+	;;
+esac
 
 # Turns off VirtualBox warning messages
 su -c 'VBoxManage setextradata global GUI/SuppressMessages remindAboutAutoCapture,confirmInputCapture,remindAboutMouseIntegration,remindAboutWrongColorDepth,showRuntimeError.warning.HostAudioNotResponding,remindAboutGoingSeamless,remindAboutInputCapture,remindAboutGoingFullscreen,remindAboutMouseIntegrationOff,confirmGoingSeamless,remindAboutPausedVMInput,confirmVMReset,confirmGoingFullscreen' guestos0001
