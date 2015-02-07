@@ -78,21 +78,20 @@ echo 'VubuntuBox Admin (vubadmin) Password'
 echo '===================================='
 echo
 stty -echo
-         while [  $VubAdminPasswd != $VubAdminPasswd2 ]; do        
+         while [  "$VubAdminPasswd" != "$VubAdminPasswd2" ]; do        
              read -p "Enter the Password for the vubadmin user: " VubAdminPasswd
              echo
 			 read -p "Confirm vubadmin Password: " VubAdminPasswd2
- 			 if [ $VubAdminPasswd != $VubAdminPasswd2 ];
+ 			 if [ "$VubAdminPasswd" != "$VubAdminPasswd2" ];
 				 then
 				 	 echo
  				 	 echo "Passwords do not match. Please retry"
  				 	 echo
 				 else
-			  		 :
+			  		 echo $VubAdminPasswd > /variables/VubAdminPasswd
 			 fi
          done
 stty echo
-echo $VubAdminPasswd > /variables/VubAdminPasswd
 echo
 echo
 
@@ -158,11 +157,11 @@ smb://*)
 	echo $VirtualImageURLUser > /variables/VirtualImageURLUser
 	echo
 	stty -echo
-      	while [ $VirtualImageURLPasswd != $VirtualImageURLPasswd2 ]; do        
+      	while [ "$VirtualImageURLPasswd" != "$VirtualImageURLPasswd2" ]; do        
         		 read -p "If required, enter the password for the Virtual Image URL: " VirtualImageURLPasswd
         		 echo
 			 	 read -p "Confirm vubadmin Password: " VirtualImageURLPasswd2
-			 if [ $VirtualImageURLPasswd != $VirtualImageURLPasswd2 ];
+			 if [ "$VirtualImageURLPasswd" != "$VirtualImageURLPasswd2" ];
 			 then
 			 	 echo
 			 	 echo "Passwords do not match. Please retry"
