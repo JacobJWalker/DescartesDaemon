@@ -110,7 +110,7 @@ echo
 
 
 # Gets amount of RAM to be alliocated to each VM
-echo RAM Alliocation for VM Machine
+echo 'RAM Alliocation for VM Machine'
 echo '======================='
 while [ "$percentokay" != "okay" ]; do
 	 read -p "Enter percentage of RAM to allot GuestOS (only use integers): " percentram
@@ -123,20 +123,6 @@ while [ "$percentokay" != "okay" ]; do
 	 	echo
 	 fi
 done
-
-
-
-
-echo
-echo 'Fix Bridged Adapter Problem?'
-echo '================='
-echo 'This will change the VM to bridged'
-echo 'with the working network adapter'
-echo
-read -p "Would you like to change the VM to bridged? (y/n) " bridged
-echo $bridged > /variables/bridged
-echo
-
 
 # Get URL to be used to download Virtual Image file at the end of the installation
 echo 'Virtual Machine OVA URL'
@@ -309,25 +295,29 @@ rm /usr/share/virtualbox/*.ova
 
 # Changes VM to proper bridged if asked
 # Temporary kludge. This program does not work if WiFi and Ethernet are both being used
-case $bridged in
-"y")
-	vboxmanage list bridgedifs | grep -w "Name" | awk '{ print $2 }' | while read output;
-	do
-	intertube=0
-	echo "begin ping"
-	ping -c 1 -I $output google.com
-	if [ $? -eq  0 ]; then
-	     ping success
-		 su -c 'VBoxManage modifyvm guestos0001 --nic1 bridged' guestos0001
-		 su -c 'VBoxManage modifyvm guestos0001 --bridgeadapter1 $output' guestos0001
-	else
-		 echo "fail ping"           
-	fi
-	done
-	;;
-*)
-	:
-	;;
+networktype=`VBoxManage showvminfo Vu2ReallyReally | grep "NIC 1:" | awk '{ print $6 }' | tr -d ','`
+case $networktype in
+	"NAT")
+		:
+		;;
+	"Bridged")
+		vboxmanage list bridgedifs | grep -w "Name" | awk '{ print $2 }' | while read output;
+		do
+		intertube=0
+		echo "begin ping"
+		ping -c 1 -I $output google.com
+		if [ $? -eq  0 ]; then
+		     ping success
+			 echo su -c 'VBoxManage modifyvm guestos0001 --nic1 bridged' guestos0001
+			 echo su -c "VBoxManage modifyvm guestos0001 --bridgeadapter1 $output" guestos0001
+		else
+			 echo "fail ping"           
+		fi
+		done
+		;;
+	*)
+		:
+		;;
 esac
 
 # Turns off VirtualBox warning messages
