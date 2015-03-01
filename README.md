@@ -15,8 +15,9 @@ Brought to you by the [Vubuntu development team](http://vubuntubox.org/wiki/inde
 
 3. Copy VubuntuBox modified files into the extracted Lubuntu ISO folder and overwrite all files
 
-4. Make a new ISO by running 
-  $ mkisofs -r -V "VubuntuBox" -cache-inodes -J -l -b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -o "Disk_Images/VubuntuBox.iso" "VubuntuBox_Files/"
+4.Make a new ISO by running 
+            
+    $ mkisofs -r -V "VubuntuBox" -cache-inodes -J -l -b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -o "Disk_Images/VubuntuBox.iso" "VubuntuBox_Files/"
 
 5. Boot from the ISO or use a Virtual Machine to test it
 
