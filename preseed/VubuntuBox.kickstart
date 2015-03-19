@@ -250,13 +250,35 @@ usermod -a -G sudo vubadmin
 adduser --disabled-password --gecos "Guest OS 1" guestos0001
 passwd guestos0001 -d
 
-# Replaces lightdm with SLiM
-# Replaces Lubuntu-Desktop with LXDE (for compatability)
-#apt-get remove lightdm -y
-#apt-get install slim -y
-#apt-get install LXDE -y
-#apt-get remove lubuntu-desktop -y
-#apt-get autoremove -y
+
+
+# THIS NEEDS TO BE MOVED ABOUT
+
+# Installs jwm
+apt-get install jwm -y
+apt-get install gkrellm -y
+
+# Installs CDM
+wget https://github.com/ghost1227/cdm/zipball/master -O cdm-master.zip
+unzip cdm-master.zip
+cd ghost*
+./install.sh
+cd ..
+rm -rf ghost*
+rm -rf cdm-master.zip
+apt-get install dialog
+
+# http://serverfault.com/questions/151933/autologin-on-ubuntu-server
+
+# Changes To Chvt 1 Upon Booot
+printf '%s\n' 'chvt 1' >> /etc/rc.local
+
+# http://askubuntu.com/questions/98433/run-a-script-on-login-using-bash-login
+
+
+
+
+
 
 # Install VirtualBox from its Repository
 echo 'deb http://download.virtualbox.org/virtualbox/debian trusty contrib' >> /etc/apt/sources.list
