@@ -109,62 +109,86 @@ echo $GuestOSHostname > /variables/GuestOSHostname
 echo
 echo
 
+# Get number of Virtual Machines the user would like to install at this time
+echo 'Virtual Machine Number'
+echo '================='
+read -p "How many Virtual Machines would you like?" NumberOfVMs
+echo $NumberOfVMs > /variables/NumberOfVMs
+echo
+echo
 
-# Gets amount of RAM to be alliocated to each VM
-echo 'RAM Alliocation for VM Machine'
-echo '======================='
-while [ "$percentokay" != "okay" ]; do
-	 read -p "Enter percentage of RAM to allot GuestOS (only use integers): " percentram
-	 if [ "$percentram" -lt 100 ]; then
+
+# Gets amount of RAM to be alliocated to each VM 
+export NumberOfVMs=`cat /variables/NumberOfVMs`
+while [ $NumberOfVMs -gt 0 ];do
+	while [ "$percentokay" != "okay" ]; do
+		 echo $percentokay
+		 echo RAM Alliocation for VM `printf %04g $NumberOfVMs`
+		 echo '======================='
+		 echo
+		 read -p "Enter percentage of RAM to allot VM `printf %04g $NumberOfVMs` (only use integers): " percentram
+		 if [ "$percentram" -lt 100 ]; then
 			 	percentokay="okay"
-			 	echo $percentram > /variables/percentram
-	 else
-	 	echo
-	 	echo "The number you selected is either too high or otherwise incorrect. Please try again"
-	 	echo
-	 fi
+			 	echo
+			 	eval $percentram_$(printf %04g $NumberOfVMs)=$percentram
+			 	echo $percentram_$(printf %04g $NumberOfVMs) > /variables/percentram_$(printf %04g $NumberOfVMs)
+			 	echo
+		 else
+			 	echo
+			 	echo "The number you selected is either too high or otherwise incorrect. Please try again"
+			 	echo
+		 fi
+	done
+let NumberOfVMs=NumberOfVMs-1
 done
 
 # Get URL to be used to download Virtual Image file at the end of the installation
-echo 'Virtual Machine OVA URL'
-echo '======================='
-echo
-echo 'VubuntuBox will download a virtual image after installing itself.'
-echo 'It can use http, https, ftp, or smb (windows file sharing)'
-echo 'It will use either wget or smbget.  Read their documentation for more info.'
-echo
-read -p "Enter the full URL of the Virtual Image: " VirtualImageURL
-echo $VirtualImageURL > /variables/VirtualImageURL
-echo
+export NumberOfVMs=`cat /variables/NumberOfVMs`
+while [  $NumberOfVMs -gt 0 ];do
+	echo Virtual Machine OVA URL for VM `printf %04g $NumberOfVMs`
+	echo '======================='
+	echo
+	echo 'VubuntuBox will download a virtual image after installing itself.'
+	echo 'It can use http, https, ftp, or smb (windows file sharing)'
+	echo 'It will use either wget or smbget.  Read their documentation for more info.'
+	echo
+	read -p "Enter the full URL of the Virtual Image: " VirtualImageURL
+ 	eval $VirtualImageURL_$(printf %04g $NumberOfVMs)="$VirtualImageURL"	
+	echo $VirtualImageURL_$(printf %04g $NumberOfVMs) > /variables/VirtualImageURL_$(printf %04g $NumberOfVMs)
+	echo
 
-case $VirtualImageURL in
-smb://*) 
+	case $VirtualImageURL in
+	smb://*) 
+		echo
+		read -p "If required, enter the username for the Virtual Image URL: " VirtualImageURLUser
+	 	eval $VirtualImageURLUser_$(printf %04g $NumberOfVMs)="$VirtualImageURLUser"	
+		echo $VirtualImageURLUser_$(printf %04g $NumberOfVMs) > /variables/VirtualImageURLUser_$(printf %04g $NumberOfVMs)
+		echo
+		stty -echo
+	    	while [  "$VirtualImageURLPasswd" != "$VirtualImageURLPasswd2" ]; do        
+		    		 read -p "If required, enter the password for the Virtual Image URL: " VirtualImageURLPasswd
+		    		 echo
+				 	 read -p "Confirm vubadmin Password: " VirtualImageURLPasswd2
+				 if [ "$VirtualImageURLPasswd" != "$VirtualImageURLPasswd2" ];
+				 then
+				 	 echo
+				 	 echo "Passwords do not match. Please retry"
+				 	 echo
+				 else
+			 	 	 eval $VirtualImageURLPasswd_$(printf %04g $NumberOfVMs)="$VirtualImageURLPasswd"	
+	 		  	 	 echo $VirtualImageURLPasswd_$(printf %04g $NumberOfVMs) > /variables/VirtualImageURLPasswd_$(printf %04g $NumberOfVMs)
+			 	fi
+	     	done
+		stty echo
+		;;
+	*) 
+		:
+		;;
+	esac
 	echo
-	read -p "If required, enter the username for the Virtual Image URL: " VirtualImageURLUser
-	echo $VirtualImageURLUser > /variables/VirtualImageURLUser
 	echo
-	stty -echo
-      	while [ "$VirtualImageURLPasswd" != "$VirtualImageURLPasswd2" ]; do        
-        		 read -p "If required, enter the password for the Virtual Image URL: " VirtualImageURLPasswd
-        		 echo
-			 	 read -p "Confirm vubadmin Password: " VirtualImageURLPasswd2
-			 if [ "$VirtualImageURLPasswd" != "$VirtualImageURLPasswd2" ];
-			 then
-			 	 echo
-			 	 echo "Passwords do not match. Please retry"
-			 	 echo
-			 else
-		  	 	 echo $VirtualImageURLPasswd > /variables/VirtualImageURLPasswd
-		 	 fi
-       done
-	stty echo
-	;;
-*) 
-	:
-	;;
-esac
-echo
-echo
+let NumberOfVMs=NumberOfVMs-1
+done
 
 # Confirms that the user knows that the disk is going to get wiped with this installation
 echo 'WARNING!!! WARNING!!! WARNING!!!'
