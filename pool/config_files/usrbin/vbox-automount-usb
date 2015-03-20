@@ -15,6 +15,10 @@
       if [ ! -z "$busdevice" ]; then
         address=$(VBoxManage list usbhost | grep "Address:" | grep $bus device | sed -e 's/Address://' -e 's/^[ \t]*//')
         if [ ! -z "$address" ]; then
-          su - guestos0001 -c "VBoxManage controlvm guestos0001 usbattach $address"
+          while [  $NumberOfVMs -gt 0 ];do
+             NumberOfVMs=replaceme
+             su - guestos -c "VBoxManage controlvm guestos_$(printf %04g $NumberOfVMs) usbattach $address"
+          let NumberOfVMs=NumberOfVMs-1
+          done
         fi
       fi
