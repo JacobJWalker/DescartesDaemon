@@ -130,7 +130,7 @@ while [ $NumberOfVMs -gt 0 ];do
 		 if [ "$percentram" -lt 100 ]; then
 			 	percentokay="okay"
 			 	echo
-			 	bash /cdrom/pool/config_files/declare.sh percentram
+			 	bash /cdrom/pool/config_files/declare.sh percentram $NumberOfVMs
 		 	 	export percentram_$(printf %04g $NumberOfVMs)=`cat /variables/percentram_$(printf %04g $NumberOfVMs)`
 			 	echo percentram_$(printf %04g $NumberOfVMs) > /variables/percentram_$(printf %04g $NumberOfVMs)
 			 	echo
@@ -463,7 +463,7 @@ echo
 echo
 : <<'END'
 echo $variablenamehere > /variables/the variablenamehere
-bash /cdrom/pool/config_files/declare.sh variablenamehere
+bash /cdrom/pool/config_files/declare.sh variablenamehere [If needed the second argument can be a new number, otherwise it sticks to NumberOfVMs]
 export variablenamehere_$(printf %04g $NumberOfVMs)=`cat /variables/variablenamehere_$(printf %04g $NumberOfVMs)`
 echo variablenamehere_$(printf %04g $NumberOfVMs) > /variables/variablenamehere_$(printf %04g $NumberOfVMs)
 END
