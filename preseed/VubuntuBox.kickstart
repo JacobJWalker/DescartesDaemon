@@ -72,79 +72,134 @@ mount /dev/ram1 /variables
 
 # Get variables that will be used later in the %post script
 
-# Get vubadmin Password
-echo 'VubuntuBox Admin (vubadmin) Password'
-echo '===================================='
-echo
-stty -echo
-		 VubAdminPasswd="incorrect"
-         while [  "$VubAdminPasswd" != "$VubAdminPasswd2" ]; do        
-             read -p "Enter the Password for the vubadmin user: " VubAdminPasswd
-             echo
-			 read -p "Confirm vubadmin Password: " VubAdminPasswd2
- 			 if [ "$VubAdminPasswd" != "$VubAdminPasswd2" ];
-				 then
-				 	 echo
- 				 	 echo "Passwords do not match. Please retry"
- 				 	 echo
-				 else
-			  		 echo $VubAdminPasswd > /variables/VubAdminPasswd
-			 fi
-         done
-stty echo
-echo
-echo
+############################################ GET VUBADMIN PASSWORD ##################################################
+
+VubAdminPasswd="incorrect"
+while [  "$VubAdminPasswd" != "$VubAdminPasswd2" ]; do    
+
+ ###### THIS IS FOR PASSWORD ONE ######
+ data=$(tempfile 2>/dev/null)
+ trap "rm -f $data" 0 1 2 5 15
+ dialog --title "Admin Password" \
+ --clear \
+ --insecure \
+ --passwordbox "Enter your password for the admin account (named vubadmin)" 10 30 2> $data
+ ret=$?
+ case $ret in
+   0)
+     VubAdminPasswd="$(cat $data)";;
+   1)
+     shutdown;;
+   255)
+	 [ -s $data ] &&  cat $data || echo "ESC pressed." & shutdown;;
+ esac
+
+ ###### THIS IS FOR PASSWORD TWO ######
+
+ data=$(tempfile 2>/dev/null)
+ trap "rm -f $data" 0 1 2 5 15
+ dialog --title "Confirm Admin Password" \
+ --clear \
+ --insecure \
+ --passwordbox "Please reenter your password for the admin account (named vubadmin) to confirm the password" 10 30 2> $data
+ 
+ ret=$?
+ 
+ # make decison
+ case $ret in
+   0)
+     VubAdminPasswd2="$(cat $data)";;
+   1)
+     shutdown;;
+   255)
+	 [ -s $data ] &&  cat $data || echo "ESC pressed." & shutdown;;
+ esac
+ if [ "$VubAdminPasswd" != "$VubAdminPasswd2" ];then
+     dialog --title "Password Incorrect" --backtitle "Unmatching Passwords\
+     Tutorial" --msgbox "I'm sorry, but your passwords do not match.\
+     Please hit any button to try again." 9 50
+ else
+   echo $VubAdminPasswd > /variables/VubAdminPasswd
+ fi
+done
 
 
-# Get Guest OS Hostname, which will also be used as part of the Host OS Hostname
-echo
-echo 'Guest OS Hostname'
-echo '================='
-echo 'This will also be used in the Host OS hostname, where it will have the same name,'
-echo 'with "-vub" added as a suffix'
-echo
-read -p "Enter the main Guest OS Hostname: " GuestOSHostname
-echo $GuestOSHostname > /variables/GuestOSHostname
-echo
-echo
 
-# Get number of Virtual Machines the user would like to install at this time
-echo 'Virtual Machine Number'
-echo '================='
-read -p "How many Virtual Machines would you like? " NumberOfVMs
-echo $NumberOfVMs > /variables/NumberOfVMs
-echo
-echo
+############################################  GET GUEST OS HOSTNAME, WHICH WILL ALSO BE USED AS PART OF THE HOST OS HOSTNAME ############################################
+
+DIALOG=${DIALOG=dialog}
+tempfile=`tempfile 2>/dev/null` || tempfile=/tmp/test$$
+trap "rm -f $tempfile" 0 1 2 5 15
+
+$DIALOG --title "Guest OS Hostname" --clear \
+        --inputbox "This will also be used in the Host OS hostname, \n
+where it will have the same name,\n
+with '-vub' added as a suffix" 16 51 2> $tempfile
+
+retval=$?
+
+case $retval in
+  0)
+    "`cat $tempfile`"> /variables/GuestOSHostname;;
+  1)
+    shutdown;;
+  255)
+    if test -s $tempfile ; then
+      cat $tempfile
+    else
+      echo "ESC pressed."
+    fi
+    shutdown
+    ;;
+esac
 
 
-# Gets amount of RAM to be alliocated to each VM 
+############################################ GETS AMOUNT OF RAM TO BE ALLIOCATED TO EACH VM ############################################
 export NumberOfVMs=`cat /variables/NumberOfVMs`
 while [ $NumberOfVMs -gt 0 ];do
-	while [ "$percentokay" != "okay" ]; do
-		 echo $percentokay
-		 echo RAM Alliocation for VM `printf %04g $NumberOfVMs`
-		 echo '======================='
-		 echo
-		 read -p "Enter percentage of RAM to allot VM `printf %04g $NumberOfVMs` (only use integers): " percentram
-		 echo $percentram > /variables/percentram
-		 if [ "$percentram" -lt 100 ]; then
-			 	percentokay="okay"
-			 	echo
-			 	bash /cdrom/pool/config_files/declare.sh percentram $NumberOfVMs
-		 	 	export percentram_$(printf %04g $NumberOfVMs)=`cat /variables/percentram_$(printf %04g $NumberOfVMs)`
-			 	echo percentram_$(printf %04g $NumberOfVMs) > /variables/percentram_$(printf %04g $NumberOfVMs)
-			 	echo
-		 else
-			 	echo
-			 	echo "The number you selected is either too high or otherwise incorrect. Please try again"
-			 	echo
-		 fi
-	done
+  while [ "$percentokay" != "okay" ]; do
+
+   DIALOG=${DIALOG=dialog}
+   tempfile=`tempfile 2>/dev/null` || tempfile=/tmp/test$$
+   trap "rm -f $tempfile" 0 1 2 5 15
+   $DIALOG --title "RAM Alliocation for VM `printf %04g $NumberOfVMs`" --clear \
+     --inputbox "Enter percentage of RAM to allot VM \n
+   `printf %04g $NumberOfVMs` (only use integers)" 16 51 2> $tempfile
+   retval=$?
+   case $retval in
+     0)
+       percentram="`cat $tempfile`";;
+     1)
+       shutdown;;
+     255)
+       if test -s $tempfile ; then
+         cat $tempfile
+       else
+         echo "ESC pressed."
+       fi
+       shutdown
+       ;;
+   esac
+
+   if [ "$percentram" -lt 100 ]; then
+        percentokay="okay"
+        echo
+        bash /cdrom/pool/config_files/declare.sh percentram $NumberOfVMs
+        export percentram_$(printf %04g $NumberOfVMs)=`cat /variables/percentram_$(printf %04g $NumberOfVMs)`
+        echo percentram_$(printf %04g $NumberOfVMs) > /variables/percentram_$(printf %04g $NumberOfVMs)
+        echo
+     else
+         dialog --title "Incorrect Number Input" --backtitle "Number Is\
+         Incorrect" --msgbox "The number you selected is either too high\
+         or otherwise incorrect." 9 50
+     fi
+  done
 percentokay="notokay"
 let NumberOfVMs=NumberOfVMs-1
 done
 
-# Get URL to be used to download Virtual Image file at the end of the installation
+############################################ Get URL to be used to download Virtual Image file at the end of the installation ############################################
+
 export NumberOfVMs=`cat /variables/NumberOfVMs`
 while [  $NumberOfVMs -gt 0 ];do
 	echo Virtual Machine OVA URL for VM `printf %04g $NumberOfVMs`
