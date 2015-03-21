@@ -156,7 +156,7 @@ while [  $NumberOfVMs -gt 0 ];do
 	echo
 	read -p "Enter the full URL of the Virtual Image: " VirtualImageURL
 	echo $VirtualImageURL > /variables/VirtualImageURL
- 	bash /cdrom/pool/config_files/declare.sh VirtualImageURL
+ 	bash /cdrom/pool/config_files/declare.sh VirtualImageURL $NumberOfVMs
  	export VirtualImageURL_$(printf %04g $NumberOfVMs)=`cat /variables/VirtualImageURL_$(printf %04g $NumberOfVMs)`
 	echo VirtualImageURL_$(printf %04g $NumberOfVMs) > /variables/VirtualImageURL_$(printf %04g $NumberOfVMs)
 	echo
@@ -166,7 +166,7 @@ while [  $NumberOfVMs -gt 0 ];do
 		echo
 		read -p "If required, enter the username for the Virtual Image URL: " VirtualImageURLUser
 		echo $VirtualImageURLUser > /variables/VirtualImageURLUser
-	 	bash /cdrom/pool/config_files/declare.sh VirtualImageURLUser
+	 	bash /cdrom/pool/config_files/declare.sh VirtualImageURLUser $NumberOfVMs
 	 	export VirtualImageURLUser_$(printf %04g $NumberOfVMs)=`cat /variables/VirtualImageURLUser_$(printf %04g $NumberOfVMs)`
 		echo VirtualImageURLUser_$(printf %04g $NumberOfVMs) > /variables/VirtualImageURLUser_$(printf %04g $NumberOfVMs)
 		echo
@@ -181,8 +181,8 @@ while [  $NumberOfVMs -gt 0 ];do
 				 	 echo "Passwords do not match. Please retry"
 				 	 echo
 				 else
-					 echo $VirtualImageURLPasswd > /variables/VirtualImageURLPasswd
-				 	 bash /cdrom/pool/config_files/declare.sh VirtualImageURLPasswd
+					 echo $VirtualImageURLPasswd > /variables/VirtualImageURLPasswd 
+				 	 bash /cdrom/pool/config_files/declare.sh VirtualImageURLPasswd $NumberOfVMs
 				 	 export VirtualImageURLPasswd_$(printf %04g $NumberOfVMs)=`cat /variables/VirtualImageURLPasswd_$(printf %04g $NumberOfVMs)`
 	 		  	 	 echo VirtualImageURLPasswd_$(printf %04g $NumberOfVMs) > /variables/VirtualImageURLPasswd_$(printf %04g $NumberOfVMs)
 			 	fi
