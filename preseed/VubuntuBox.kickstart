@@ -112,7 +112,7 @@ echo
 # Get number of Virtual Machines the user would like to install at this time
 echo 'Virtual Machine Number'
 echo '================='
-read -p "How many Virtual Machines would you like?" NumberOfVMs
+read -p "How many Virtual Machines would you like? " NumberOfVMs
 echo $NumberOfVMs > /variables/NumberOfVMs
 echo
 echo
@@ -127,11 +127,13 @@ while [ $NumberOfVMs -gt 0 ];do
 		 echo '======================='
 		 echo
 		 read -p "Enter percentage of RAM to allot VM `printf %04g $NumberOfVMs` (only use integers): " percentram
+		 echo $percentram > /variables/percentram
 		 if [ "$percentram" -lt 100 ]; then
 			 	percentokay="okay"
 			 	echo
-			 	eval $percentram_$(printf %04g $NumberOfVMs)=$percentram
-			 	echo $percentram_$(printf %04g $NumberOfVMs) > /variables/percentram_$(printf %04g $NumberOfVMs)
+			 	bash /cdrom/pool/config_files/declare.sh percentram
+		 	 	export percentram_$(printf %04g $NumberOfVMs)=`cat /variables/percentram_$(printf %04g $NumberOfVMs)`
+			 	echo percentram_$(printf %04g $NumberOfVMs) > /variables/percentram_$(printf %04g $NumberOfVMs)
 			 	echo
 		 else
 			 	echo
@@ -153,16 +155,20 @@ while [  $NumberOfVMs -gt 0 ];do
 	echo 'It will use either wget or smbget.  Read their documentation for more info.'
 	echo
 	read -p "Enter the full URL of the Virtual Image: " VirtualImageURL
- 	eval $VirtualImageURL_$(printf %04g $NumberOfVMs)="$VirtualImageURL"	
-	echo $VirtualImageURL_$(printf %04g $NumberOfVMs) > /variables/VirtualImageURL_$(printf %04g $NumberOfVMs)
+	echo $VirtualImageURL > /variables/VirtualImageURL
+ 	bash /cdrom/pool/config_files/declare.sh VirtualImageURL
+ 	export VirtualImageURL_$(printf %04g $NumberOfVMs)=`cat /variables/VirtualImageURL_$(printf %04g $NumberOfVMs)`
+	echo VirtualImageURL_$(printf %04g $NumberOfVMs) > /variables/VirtualImageURL_$(printf %04g $NumberOfVMs)
 	echo
 
 	case $VirtualImageURL in
 	smb://*) 
 		echo
 		read -p "If required, enter the username for the Virtual Image URL: " VirtualImageURLUser
-	 	eval $VirtualImageURLUser_$(printf %04g $NumberOfVMs)="$VirtualImageURLUser"	
-		echo $VirtualImageURLUser_$(printf %04g $NumberOfVMs) > /variables/VirtualImageURLUser_$(printf %04g $NumberOfVMs)
+		echo $VirtualImageURLUser > /variables/VirtualImageURLUser
+	 	bash /cdrom/pool/config_files/declare.sh VirtualImageURLUser
+	 	export VirtualImageURLUser_$(printf %04g $NumberOfVMs)=`cat /variables/VirtualImageURLUser_$(printf %04g $NumberOfVMs)`
+		echo VirtualImageURLUser_$(printf %04g $NumberOfVMs) > /variables/VirtualImageURLUser_$(printf %04g $NumberOfVMs)
 		echo
 		stty -echo
 	    	while [  "$VirtualImageURLPasswd" != "$VirtualImageURLPasswd2" ]; do        
@@ -175,8 +181,10 @@ while [  $NumberOfVMs -gt 0 ];do
 				 	 echo "Passwords do not match. Please retry"
 				 	 echo
 				 else
-			 	 	 eval $VirtualImageURLPasswd_$(printf %04g $NumberOfVMs)="$VirtualImageURLPasswd"	
-	 		  	 	 echo $VirtualImageURLPasswd_$(printf %04g $NumberOfVMs) > /variables/VirtualImageURLPasswd_$(printf %04g $NumberOfVMs)
+					 echo $VirtualImageURLPasswd > /variables/VirtualImageURLPasswd
+				 	 bash /cdrom/pool/config_files/declare.sh VirtualImageURLPasswd
+				 	 export VirtualImageURLPasswd_$(printf %04g $NumberOfVMs)=`cat /variables/VirtualImageURLPasswd_$(printf %04g $NumberOfVMs)`
+	 		  	 	 echo VirtualImageURLPasswd_$(printf %04g $NumberOfVMs) > /variables/VirtualImageURLPasswd_$(printf %04g $NumberOfVMs)
 			 	fi
 	     	done
 		stty echo
@@ -208,7 +216,7 @@ if [[ "$REPLY" != "y" ]]; then
 fi
 
 # Start a %pre interactive shell (Comment/Uncomment and/or move as needed for debugging)
-# /bin/ash
+/bin/ash
 
 # Change back to Virtual Terminal 1 where the Install has been running
 # From http://hintshop.ludvig.co.nz/show/interactive-pre-post-install-scripts-redhat-kickstart/
@@ -251,6 +259,7 @@ mount /dev/ram1 /variables
 # Import Variables
 export GuestOSHostname=`cat /variables/GuestOSHostname`
 export VubAdminPasswd=`cat /variables/VubAdminPasswd`
+export NumberOfVMs=`cat /variables/NumberOfVMs`
 while [  $NumberOfVMs -gt 0 ];do
 	export VirtualImageURL_$(printf %04g $NumberOfVMs)=`cat /variables/VirtualImageURL_$(printf %04g $NumberOfVMs)`
 	export VirtualImageURLUser_$(printf %04g $NumberOfVMs)=`cat /variables/VirtualImageURLUser_$(printf %04g $NumberOfVMs)`
@@ -351,7 +360,7 @@ while [  $NumberOfVMs -gt 0 ];do
 	else
 		 wget $VirtualImageURL_$(printf %04g $NumberOfVMs)
 	fi
-	vm *.ova guestos_$(printf %04g $NumberOfVMs).ova
+	mv *.ova guestos_$(printf %04g $NumberOfVMs).ova
 let NumberOfVMs=NumberOfVMs-1
 done
 
@@ -433,19 +442,29 @@ chmod +x /usr/bin/vbox-automount-usb
 # Start a %post interactive shell (Comment/Uncomment and/or move as needed for debugging)
 /bin/bash
 
-# This is one long note about how to implament the loop used for multi user install
+# How to implament the multi VM loop in %post%
 echo
 : <<'END'
 read -p "NumberOfVMs: " NumberOfVMs
 while [  $NumberOfVMs -gt 0 ];do
      echo guestos_$(printf %04g $NumberOfVMs) # Printf is for zero padding 1 --> 0001
      read -p "Passwords: " Passwords
-     declare guestos_$(printf %04g $NumberOfVMs)="$Passwords"
+     declare guestos_$(printf %04g $NumberOfVMs)=$Passwords
      let NumberOfVMs=NumberOfVMs-1
 done
 echo $guestos_0001
 echo $guestos_0002
 echo $guestos_0003
+END
+echo
+
+# How to implament the multi VM loop in %pre%
+echo
+: <<'END'
+echo $variablenamehere > /variables/the variablenamehere
+bash /cdrom/pool/config_files/declare.sh variablenamehere
+export variablenamehere_$(printf %04g $NumberOfVMs)=`cat /variables/variablenamehere_$(printf %04g $NumberOfVMs)`
+echo variablenamehere_$(printf %04g $NumberOfVMs) > /variables/variablenamehere_$(printf %04g $NumberOfVMs)
 END
 echo
 
