@@ -69,7 +69,6 @@ mount /dev/ram1 /variables
 # echo 'labassist' > /variables/VirtualImageURLUser
 # echo 'Gr8Minds' > /variables/VirtualImageURLPasswd
 # echo '80' > /variables/percentram
-# echo 'yes' > /variables/bridged
 
 # Get variables that will be used later in the %post script
 
@@ -263,10 +262,12 @@ export VubAdminPasswd=`cat /variables/VubAdminPasswd`
 export NumberOfVMs=`cat /variables/NumberOfVMs`
 while [  $NumberOfVMs -gt 0 ];do
 	export VirtualImageURL_$(printf %04g $NumberOfVMs)=`cat /variables/VirtualImageURL_$(printf %04g $NumberOfVMs)`
-	export VirtualImageURLUser_$(printf %04g $NumberOfVMs)=`cat /variables/VirtualImageURLUser_$(printf %04g $NumberOfVMs)`
-	export VirtualImageURLPasswd_$(printf %04g $NumberOfVMs)=`cat /variables/VirtualImageURLPasswd_$(printf %04g $NumberOfVMs)`
-	export bridged_$(printf %04g $NumberOfVMs)=`cat /variables/bridged_$(printf %04g $NumberOfVMs)`
 	export percentram_$(printf %04g $NumberOfVMs)=`cat /variables/percentram_$(printf %04g $NumberOfVMs)`
+	if [[ $VirtualImageURL_$(printf %04g $NumberOfVMs) = smb://* ]];
+	then
+		export VirtualImageURLUser_$(printf %04g $NumberOfVMs)=`cat /variables/VirtualImageURLUser_$(printf %04g $NumberOfVMs)`
+		export VirtualImageURLPasswd_$(printf %04g $NumberOfVMs)=`cat /variables/VirtualImageURLPasswd_$(printf %04g $NumberOfVMs)`
+	fi
 let NumberOfVMs=NumberOfVMs-1
 done
 
@@ -380,7 +381,6 @@ while [  $NumberOfVMs -gt 0 ];do
      let NumberOfVMs=NumberOfVMs-1
 done
 
-# Changes VM to proper bridged if asked
 # Temporary kludge. This program does not work if WiFi and Ethernet are both being used
 networktype=`VBoxManage showvminfo Vu2ReallyReally | grep "NIC 1:" | awk '{ print $6 }' | tr -d ','`
 case $networktype in
