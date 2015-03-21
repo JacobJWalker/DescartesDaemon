@@ -141,6 +141,7 @@ while [ $NumberOfVMs -gt 0 ];do
 			 	echo
 		 fi
 	done
+percentokay="notokay"
 let NumberOfVMs=NumberOfVMs-1
 done
 
