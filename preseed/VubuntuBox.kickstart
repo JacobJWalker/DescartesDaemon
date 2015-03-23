@@ -51,6 +51,7 @@ xconfig --depth=16 --resolution=800x600 --startxonboot
 exec < /dev/tty6 > /dev/tty6 2> /dev/tty6
 chvt 6
 
+echo $SHELL
 
 # Copy Binaries into Appropriate Locations to Have a More Robust initial environment
 cp --recursive /cdrom/pool/binary-i386/* /
@@ -72,13 +73,20 @@ mount /dev/ram1 /variables
 
 # Get variables that will be used later in the %post script
 
+mkdir fakevar
+
+/bin/ash
+bash --login
+
 ############################################ GET VUBADMIN PASSWORD ##################################################
 
 VubAdminPasswd="incorrect"
 while [  "$VubAdminPasswd" != "$VubAdminPasswd2" ]; do    
 
  ###### THIS IS FOR PASSWORD ONE ######
- data=$(tempfile 2>/dev/null)
+ 
+ touch data
+ data=/fakevar/data
  trap "rm -f $data" 0 1 2 5 15
  dialog --title "Admin Password" \
  --clear \
@@ -96,23 +104,20 @@ while [  "$VubAdminPasswd" != "$VubAdminPasswd2" ]; do
 
  ###### THIS IS FOR PASSWORD TWO ######
 
- data=$(tempfile 2>/dev/null)
- trap "rm -f $data" 0 1 2 5 15
+ sata=/fakevar/sata
+ trap "rm -f $sata" 0 1 2 5 15
  dialog --title "Confirm Admin Password" \
  --clear \
  --insecure \
- --passwordbox "Please reenter your password for the admin account (named vubadmin) to confirm the password" 10 30 2> $data
- 
+ --passwordbox "Please reenter your password for the admin account (named vubadmin) to confirm the password" 10 30 2> $sata
  ret=$?
- 
- # make decison
  case $ret in
    0)
-     VubAdminPasswd2="$(cat $data)";;
+     VubAdminPasswd2="$(cat $sata)";;
    1)
      shutdown;;
    255)
-	 [ -s $data ] &&  cat $data || echo "ESC pressed." & shutdown;;
+	 [ -s $sata ] &&  cat $sata || echo "ESC pressed." & shutdown;;
  esac
  if [ "$VubAdminPasswd" != "$VubAdminPasswd2" ];then
      dialog --title "Password Incorrect" --backtitle "Unmatching Passwords\
@@ -127,25 +132,22 @@ done
 
 ############################################  GET GUEST OS HOSTNAME, WHICH WILL ALSO BE USED AS PART OF THE HOST OS HOSTNAME ############################################
 
-DIALOG=${DIALOG=dialog}
-tempfile=`tempfile 2>/dev/null` || tempfile=/tmp/test$$
-trap "rm -f $tempfile" 0 1 2 5 15
-
-$DIALOG --title "Guest OS Hostname" --clear \
+hostnmfile=/fakevar/hostnmfile
+trap "rm -f $hostnmfile" 0 1 2 5 15
+dialog --title "Guest OS Hostname" --clear \
         --inputbox "This will also be used in the Host OS hostname, \n
 where it will have the same name,\n
-with '-vub' added as a suffix" 16 51 2> $tempfile
-
+with '-vub' added as a suffix" 16 51 2> $hostnmfile
 retval=$?
-
 case $retval in
   0)
-    "`cat $tempfile`"> /variables/GuestOSHostname;;
+	GuestOSHostname="$(cat $hostnmfile)"
+    echo $GuestOSHostname > /variables/GuestOSHostname;;
   1)
     shutdown;;
   255)
-    if test -s $tempfile ; then
-      cat $tempfile
+    if test -s $hostnmfile ; then
+           GuestOSHostname="$(cat $hostnmfile)"
     else
       echo "ESC pressed."
     fi
@@ -153,27 +155,51 @@ case $retval in
     ;;
 esac
 
+############################################ Get number of Virtual Machines the user would like to install at this time ############################################
+vmnum=/fakevar/vmnum
+trap "rm -f $vmnum" 0 1 2 5 15
+dialog --title "Number of Virtual Machines" --clear \
+        --inputbox "How many virtual machines would you\n
+Like to have on the system?\n
+Don't worry, details about the\n
+virtual machines will come next." 16 51 2> $vmnum
+
+retval=$?
+
+case $retval in
+  0)
+    NumberOfVMs="$(cat $vmnum)" 
+    echo $NumberOfVMs> /variables/NumberOfVMs;;
+  1)
+    shutdown;;
+  255)
+    if test -s $vmnum ; then
+      NumberOfVMs="$(cat $hostnmfile)"
+    else
+      echo "ESC pressed."
+    fi
+    shutdown
+    ;;
+esac
 
 ############################################ GETS AMOUNT OF RAM TO BE ALLIOCATED TO EACH VM ############################################
 export NumberOfVMs=`cat /variables/NumberOfVMs`
 while [ $NumberOfVMs -gt 0 ];do
   while [ "$percentokay" != "okay" ]; do
-
-   DIALOG=${DIALOG=dialog}
-   tempfile=`tempfile 2>/dev/null` || tempfile=/tmp/test$$
-   trap "rm -f $tempfile" 0 1 2 5 15
-   $DIALOG --title "RAM Alliocation for VM `printf %04g $NumberOfVMs`" --clear \
+   ramallio=/fakevar/ramallio
+   trap "rm -f $ramallio" 0 1 2 5 15
+   dialog --title "RAM Alliocation for VM `printf %04g $NumberOfVMs`" --clear \
      --inputbox "Enter percentage of RAM to allot VM \n
-   `printf %04g $NumberOfVMs` (only use integers)" 16 51 2> $tempfile
+   `printf %04g $NumberOfVMs` (only use integers)" 16 51 2> $ramallio
    retval=$?
    case $retval in
      0)
-       percentram="`cat $tempfile`";;
+       percentram="$(cat $ramallio)";;
      1)
        shutdown;;
      255)
-       if test -s $tempfile ; then
-         cat $tempfile
+       if test -s $ramallio ; then
+         cat $ramallio
        else
          echo "ESC pressed."
        fi
@@ -201,59 +227,133 @@ done
 ############################################ Get URL to be used to download Virtual Image file at the end of the installation ############################################
 
 export NumberOfVMs=`cat /variables/NumberOfVMs`
-while [  $NumberOfVMs -gt 0 ];do
-	echo Virtual Machine OVA URL for VM `printf %04g $NumberOfVMs`
-	echo '======================='
-	echo
-	echo 'VubuntuBox will download a virtual image after installing itself.'
-	echo 'It can use http, https, ftp, or smb (windows file sharing)'
-	echo 'It will use either wget or smbget.  Read their documentation for more info.'
-	echo
-	read -p "Enter the full URL of the Virtual Image: " VirtualImageURL
-	echo $VirtualImageURL > /variables/VirtualImageURL
- 	bash /cdrom/pool/config_files/declare.sh VirtualImageURL $NumberOfVMs
- 	export VirtualImageURL_$(printf %04g $NumberOfVMs)=`cat /variables/VirtualImageURL_$(printf %04g $NumberOfVMs)`
-	echo VirtualImageURL_$(printf %04g $NumberOfVMs) > /variables/VirtualImageURL_$(printf %04g $NumberOfVMs)
-	echo
+while [ $NumberOfVMs -gt 0 ];do
+   urlova=/fakevar/urlova
+   trap "rm -f $urlova" 0 1 2 5 15
+   dialog --title "Virtual Machine OVA URL for VM `printf %04g $NumberOfVMs`" --clear \
+     --inputbox "VubuntuBox will download a virtual image after installing itself.\n
+     It can use http, https, ftp, or smb (windows file sharing)\n
+     It will use either wget or smbget.  Read their documentation for more info.\n
+     Enter the full URL for VM `printf %04g $NumberOfVMs` (only use integers)" 16 51 2> $urlova
+   retval=$?
+   case $retval in
+     0)
+       VirtualImageURL="$(cat $urlova)"
+       bash /cdrom/pool/config_files/declare.sh VirtualImageURL $NumberOfVMs
+	   export VirtualImageURL_$(printf %04g $NumberOfVMs)=`cat /variables/VirtualImageURL_$(printf %04g $NumberOfVMs)`
+	   echo VirtualImageURL_$(printf %04g $NumberOfVMs) > /variables/VirtualImageURL_$(printf %04g $NumberOfVMs)
+	   ;;
+     1)
+       shutdown;;
+     255)
+       if test -s $urlova ; then
+         cat $urlova
+       else
+         echo "ESC pressed."
+       fi
+       shutdown
+       ;;
+   esac
+
+ ############################################ Now for the username/password ############################################
 
 	case $VirtualImageURL in
 	smb://*) 
-		echo
-		read -p "If required, enter the username for the Virtual Image URL: " VirtualImageURLUser
-		echo $VirtualImageURLUser > /variables/VirtualImageURLUser
-	 	bash /cdrom/pool/config_files/declare.sh VirtualImageURLUser $NumberOfVMs
-	 	export VirtualImageURLUser_$(printf %04g $NumberOfVMs)=`cat /variables/VirtualImageURLUser_$(printf %04g $NumberOfVMs)`
-		echo VirtualImageURLUser_$(printf %04g $NumberOfVMs) > /variables/VirtualImageURLUser_$(printf %04g $NumberOfVMs)
-		echo
-		stty -echo
-	    	while [  "$VirtualImageURLPasswd" != "$VirtualImageURLPasswd2" ]; do        
-		    		 read -p "If required, enter the password for the Virtual Image URL: " VirtualImageURLPasswd
-		    		 echo
-				 	 read -p "Confirm vubadmin Password: " VirtualImageURLPasswd2
-				 if [ "$VirtualImageURLPasswd" != "$VirtualImageURLPasswd2" ];
-				 then
-				 	 echo
-				 	 echo "Passwords do not match. Please retry"
-				 	 echo
-				 else
-					 echo $VirtualImageURLPasswd > /variables/VirtualImageURLPasswd 
-				 	 bash /cdrom/pool/config_files/declare.sh VirtualImageURLPasswd $NumberOfVMs
-				 	 export VirtualImageURLPasswd_$(printf %04g $NumberOfVMs)=`cat /variables/VirtualImageURLPasswd_$(printf %04g $NumberOfVMs)`
-	 		  	 	 echo VirtualImageURLPasswd_$(printf %04g $NumberOfVMs) > /variables/VirtualImageURLPasswd_$(printf %04g $NumberOfVMs)
-			 	fi
-	     	done
-		stty echo
-		;;
+
+	 ########### WHO ARE YOU? ##########
+	   userurl=/fakevar/userurl
+	   trap "rm -f $userurl" 0 1 2 5 15
+	   dialog --title "Virtual Machine OVA URL for VM `printf %04g $NumberOfVMs`" --clear \
+	     --inputbox "Please enter your username for the samba server./n
+	   If you wish to user guest instead,/n
+	   you may leave this blank and hit enter./n" 16 51 2> $userurl
+	   retval=$?
+	   case $retval in
+	     0)
+	       VirtualImageURLUser="`cat $userurl`"
+	       bash /cdrom/pool/config_files/declare.sh VirtualImageURLUser $NumberOfVMs
+	     export VirtualImageURLUser_$(printf %04g $NumberOfVMs)=`cat /variables/VirtualImageURLUser_$(printf %04g $NumberOfVMs)`
+	     echo VirtualImageURLUser_$(printf %04g $NumberOfVMs) > /variables/VirtualImageURLUser_$(printf %04g $NumberOfVMs)
+	     ;;
+	     1)
+	       shutdown;;
+	     255)
+	       if test -s $userurl ; then
+	         cat $userurl
+	       else
+	         echo "ESC pressed."
+	       fi
+	       shutdown
+	       ;;
+	    esac
+
+	 ###### IF EMPTY - IGNORE INPUTTING THE PASSWORD ######
+
+	 if [ -z "$VAR" ]; then
+	 :
+	 else
+
+	  ########### PASSWORD TIIIIIIIMMMMEEEEEE ##########
+
+	   ###### THIS IS FOR PASSWORD ONE ######
+	  
+	   touch passwdurl
+	   passwdurl=/fakevar/passwdurl
+	   trap "rm -f $passwdurl" 0 1 2 5 15
+	   dialog --title "SMB Password" \
+	   --clear \
+	   --insecure \
+	   --passwordbox "Enter your password for $VirtualImageURLUser" 10 30 2> $passwdurl
+	   ret=$?
+	   case $ret in
+	     0)
+	       VirtualImageURLPasswd="$(cat $passwdurl)";;
+	     1)
+	       shutdown;;
+	     255)
+	     [ -s $passwdurl ] &&  cat $passwdurl || echo "ESC pressed." & shutdown;;
+	   esac
+
+	   ###### THIS IS FOR PASSWORD TWO ######
+
+	   passwsurl=/fakevar/passwsurl
+	   trap "rm -f $passwsurl" 0 1 2 5 15
+	   dialog --title "Confirm Admin Password" \
+	   --clear \
+	   --insecure \
+	   --passwordbox "Please reenter your password for $VirtualImageURLUser to confirm the password" 10 30 2> $passwsurl
+	   ret=$?
+	   case $ret in
+	     0)
+	       VirtualImageURLPasswd2="$(cat $passwsurl)";;
+	     1)
+	       shutdown;;
+	     255)
+	     [ -s $passwsurl ] &&  cat $passwsurl || echo "ESC pressed." & shutdown;;
+	   esac
+	   if [ "$VirtualImageURLPasswd" != "$VirtualImageURLPasswd2" ];then
+	       dialog --title "Password Incorrect" --backtitle "Unmatching Passwords\
+	       Tutorial" --msgbox "I'm sorry, but your passwords do not match.\
+	       Please hit any button to try again." 9 50
+	   else
+	     echo $VirtualImageURLPasswd > /variables/VirtualImageURLPasswd
+	     bash /cdrom/pool/config_files/declare.sh VirtualImageURLPasswd $NumberOfVMs
+	     export VirtualImageURLPasswd_$(printf %04g $NumberOfVMs)=`cat /variables/VirtualImageURLPasswd_$(printf %04g $NumberOfVMs)`
+	     echo VirtualImageURLPasswd_$(printf %04g $NumberOfVMs) > /variables/VirtualImageURLPasswd_$(printf %04g $NumberOfVMs)
+	   fi
+	 fi
+	  ;;
 	*) 
-		:
-		;;
+	  :
+	  ;;
 	esac
-	echo
-	echo
 let NumberOfVMs=NumberOfVMs-1
 done
 
-# Confirms that the user knows that the disk is going to get wiped with this installation
+############################################ Confirms that the user knows that the disk is going to get wiped with this installation ############################################
+
+/bin/ash
+
 echo 'WARNING!!! WARNING!!! WARNING!!!'
 echo 'WARNING! THE EXISTING DATA IN THIS HARDDISK WILL BE OVERWRITTEN!'
 echo 'ALL EXISTING DATA WILL BE LOST'
@@ -281,11 +381,6 @@ exec < /dev/tty1 > /dev/tty1 2> /dev/tty1
 # Unmount RamDisk, but still leaving it in memory
 umount /variables
 
-
-# Unmount Vub, but still leaving it in the memory
-unmount /vub
-
-
 # Automatically erases part of existing operating system, so that it avoids the confirmation dialogue about the drive being mounted
 # See https://bugs.launchpad.net/ubuntu/+source/debian-installer/+bug/1370315
 dd if=/dev/zero of=/dev/sda bs=1M count=10
@@ -301,6 +396,7 @@ dd if=/dev/zero of=/dev/sda bs=1M count=10
 # ---------------------------------------------------
 %post
 
+# --interpreter /usr/bin/bash /media/cdrom/pool/bin/bash
 # Changes to Virtual Terminal 6 so that output will display properly and can be interactive
 # From http://hintshop.ludvig.co.nz/show/interactive-pre-post-install-scripts-redhat-kickstart/
 exec < /dev/tty6 > /dev/tty6 2> /dev/tty6
@@ -315,6 +411,8 @@ mount /dev/ram1 /variables
 export GuestOSHostname=`cat /variables/GuestOSHostname`
 export VubAdminPasswd=`cat /variables/VubAdminPasswd`
 export NumberOfVMs=`cat /variables/NumberOfVMs`
+
+
 while [  $NumberOfVMs -gt 0 ];do
 	export VirtualImageURL_$(printf %04g $NumberOfVMs)=`cat /variables/VirtualImageURL_$(printf %04g $NumberOfVMs)`
 	export percentram_$(printf %04g $NumberOfVMs)=`cat /variables/percentram_$(printf %04g $NumberOfVMs)`
@@ -329,6 +427,10 @@ while [  $NumberOfVMs -gt 0 ];do
 	esac
 let NumberOfVMs=NumberOfVMs-1
 done
+
+
+###################################################################################################################################################
+
 
 # Does math to figure out guestosram from percentram
 export NumberOfVMs=`cat /variables/NumberOfVMs`
