@@ -405,12 +405,21 @@ export NumberOfVMs=`cat /variables/NumberOfVMs`
 
 
 while [  $NumberOfVMs -gt 0 ];do
-	export VirtualImageURL_$(printf %04g $NumberOfVMs)=`cat /variables/VirtualImageURL_$(printf %04g $NumberOfVMs)`
-	export percentram_$(printf %04g $NumberOfVMs)=`cat /variables/percentram_$(printf %04g $NumberOfVMs)`
-	case $VirtualImageURL_$(printf %04g $NumberOfVMs) in
+	export percentram=`cat /variables/percentram_$(printf %04g $NumberOfVMs)`
+	bash /cdrom/pool/config_files/retreive.sh percentram $percentram $NumberOfVMs
+
+	export VirtualImageURL=`cat /variables/VirtualImageURL_$(printf %04g $NumberOfVMs)`
+	bash /cdrom/pool/config_files/retreive.sh VirtualImageURL $VirtualImageURL $NumberOfVMs
+
+
+	case $VirtualImageURL in
 	smb://*) 
-		export VirtualImageURLUser_$(printf %04g $NumberOfVMs)=`cat /variables/VirtualImageURLUser_$(printf %04g $NumberOfVMs)`
-		export VirtualImageURLPasswd_$(printf %04g $NumberOfVMs)=`cat /variables/VirtualImageURLPasswd_$(printf %04g $NumberOfVMs)`
+		export VirtualImageURLUser=`cat /variables/VirtualImageURLUser_$(printf %04g $NumberOfVMs)`
+		bash /cdrom/pool/config_files/retreive.sh VirtualImageURLUser $VirtualImageURLUser $NumberOfVMs
+
+		export VirtualImageURLPasswd=`cat /variables/VirtualImageURLPasswd_$(printf %04g $NumberOfVMs)`
+		bash /cdrom/pool/config_files/retreive.sh VirtualImageURLPasswd $VirtualImageURLPasswd $NumberOfVMs
+
 		;;
 	*) 
 		:
@@ -423,14 +432,7 @@ done
 ###################################################################################################################################################
 
 
-# Does math to figure out guestosram from percentram
-export NumberOfVMs=`cat /variables/NumberOfVMs`
-while [  $NumberOfVMs -gt 0 ];do
-	ram=`free -mt | grep Mem | awk '{print $2}'`
-	ramvartransfer_$(printf %04g $NumberOfVMs)=`expr $ram \\* $percentram_$(printf %04g $NumberOfVMs)`
-	guestosram_$(printf %04g $NumberOfVMs)=`expr $ramvartransfer_$(printf %04g $NumberOfVMs) / 100`
-NumberOfVMs=$((NumberOfVMs - 1))
-done
+
 
 # Add Users
 # Adds vubdmin User
@@ -507,12 +509,15 @@ apt-get install smbclient -y
 # Better user/password handling should occur as there is currently the assumption that smb has a user and password and wget doesn't
 export NumberOfVMs=`cat /variables/NumberOfVMs`
 while [  $NumberOfVMs -gt 0 ];do
+	VirtualImageURL=`cat "$VirtualImageURL_$(printf %04g $NumberOfVMs)"`
+	VirtualImageURLUser=`cat "$VirtualImageURL_$(printf %04g $NumberOfVMs)"`
+	VirtualImageURLPasswd=`cat "$VirtualImageURL_$(printf %04g $NumberOfVMs)"`
 	cd /usr/share/virtualbox
-	if [[ $VirtualImageURL_$(printf %04g $NumberOfVMs) = smb://* ]];
+	if [[ $VirtualImageURL = smb://* ]];
 	then
-		 smbget $VirtualImageURL_$(printf %04g $NumberOfVMs) --username=$VirtualImageURLUser_$(printf %04g $NumberOfVMs) --password=$VirtualImageURLPasswd_$(printf %04g $NumberOfVMs)
+		 smbget $VirtualImageURL --username=$VirtualImageURLUser --password=$VirtualImageURLPasswd
 	else
-		 wget $VirtualImageURL_$(printf %04g $NumberOfVMs)
+		 wget $VirtualImageURL
 	fi
 	mv *.ova guestos_$(printf %04g $NumberOfVMs).ova
 NumberOfVMs=$((NumberOfVMs - 1))
@@ -527,14 +532,19 @@ NumberOfVMs=$((NumberOfVMs - 1))
 done
 
 # Sets memory size of VM 
+# Does math to figure out guestosram from percentram
 export NumberOfVMs=`cat /variables/NumberOfVMs`
 while [  $NumberOfVMs -gt 0 ];do
-	 su -c 'VBoxManage modifyvm guestos_$(printf %04g $NumberOfVMs).ova --memory $guestosram_$(printf %04g $NumberOfVMs).ova' guestos
-     NumberOfVMs=$((NumberOfVMs - 1))
+	percentram=`cat "$percentram_$(printf %04g $NumberOfVMs)"`
+	ram=`free -mt | grep Mem | awk '{print $2}'`
+	ramvartransfer=`expr $ram \\* $percentram`
+	guestosram=`expr $ramvartransfer / 100`
+	su -c 'VBoxManage modifyvm guestos_$(printf %04g $NumberOfVMs) --memory $guestosram' guestos
+    NumberOfVMs=$((NumberOfVMs - 1))
 done
 
 # Temporary kludge. This program does not work if WiFi and Ethernet are both being used
-networktype=`VBoxManage showvminfo Vu2ReallyReally | grep "NIC 1:" | awk '{ print $6 }' | tr -d ','`
+networktype=`VBoxManage showvminfo guestos_$(printf %04g $NumberOfVMs) | grep "NIC 1:" | awk '{ print $6 }' | tr -d ','`
 case $networktype in
 	"NAT")
 		:
@@ -595,31 +605,8 @@ chmod +x /usr/bin/vbox-automount-usb
 # Start a %post interactive shell (Comment/Uncomment and/or move as needed for debugging)
 /bin/bash
 
-# How to implament the multi VM loop in %post%
-echo
-: <<'END'
-read -p "NumberOfVMs: " NumberOfVMs
-while [  $NumberOfVMs -gt 0 ];do
-     echo guestos_$(printf %04g $NumberOfVMs) # Printf is for zero padding 1 --> 0001
-     read -p "Passwords: " Passwords
-     declare guestos_$(printf %04g $NumberOfVMs)=$Passwords
-     NumberOfVMs=$((NumberOfVMs - 1))
-done
-echo $guestos_0001
-echo $guestos_0002
-echo $guestos_0003
-END
-echo
-
-# How to implament the multi VM loop in %pre%
-echo
-: <<'END'
-echo $variablenamehere > /variables/the variablenamehere
-bash /cdrom/pool/config_files/declare.sh variablenamehere $NumberOfVMs
-export variablenamehere_$(printf %04g $NumberOfVMs)=`cat /variables/variablenamehere_$(printf %04g $NumberOfVMs)`
-echo variablenamehere_$(printf %04g $NumberOfVMs) > /variables/variablenamehere_$(printf %04g $NumberOfVMs)
-END
-echo
+# How to implament the multi VM loop:
+# See retreive.sh and declare.sh
 
 # Installation Logs - https://help.ubuntu.com/community/KickstartCompatibility#Installation_Logs
 #cd /var/log/installer
