@@ -406,19 +406,19 @@ export NumberOfVMs=`cat /variables/NumberOfVMs`
 
 while [  $NumberOfVMs -gt 0 ];do
 	export percentram=`cat /variables/percentram_$(printf %04g $NumberOfVMs)`
-	bash /cdrom/pool/config_files/retreive.sh percentram $percentram $NumberOfVMs
+	bash /media/cdrom/pool/config_files/retreive.sh percentram $percentram $NumberOfVMs
 
 	export VirtualImageURL=`cat /variables/VirtualImageURL_$(printf %04g $NumberOfVMs)`
-	bash /cdrom/pool/config_files/retreive.sh VirtualImageURL $VirtualImageURL $NumberOfVMs
+	bash /media/cdrom/pool/config_files/retreive.sh VirtualImageURL $VirtualImageURL $NumberOfVMs
 
 
 	case $VirtualImageURL in
 	smb://*) 
 		export VirtualImageURLUser=`cat /variables/VirtualImageURLUser_$(printf %04g $NumberOfVMs)`
-		bash /cdrom/pool/config_files/retreive.sh VirtualImageURLUser $VirtualImageURLUser $NumberOfVMs
+		bash /media/cdrom/pool/config_files/retreive.sh VirtualImageURLUser $VirtualImageURLUser $NumberOfVMs
 
 		export VirtualImageURLPasswd=`cat /variables/VirtualImageURLPasswd_$(printf %04g $NumberOfVMs)`
-		bash /cdrom/pool/config_files/retreive.sh VirtualImageURLPasswd $VirtualImageURLPasswd $NumberOfVMs
+		bash /media/cdrom/pool/config_files/retreive.sh VirtualImageURLPasswd $VirtualImageURLPasswd $NumberOfVMs
 
 		;;
 	*) 
