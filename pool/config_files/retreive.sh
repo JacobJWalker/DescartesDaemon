@@ -7,9 +7,9 @@
 ################# WHEN LOADING UP AT FIRST #####################
 NumberOfVMs=$3
 eval variableName="$1_$(printf %04g $NumberOfVMs)"
-variableVal="$2_$(printf %04g $NumberOfVMs)"
+variableVal="$2"
 eval ${variableName}=`echo -ne \""${variableVal}"\"`
-eval "echo \$${variableName}" > "$1_$(printf %04g $NumberOfVMs)"
+eval "echo \$${variableName}" > /tempvars/"$1_$(printf %04g $NumberOfVMs)"
 
 
 ################### WHEN LOADING LATER #####################

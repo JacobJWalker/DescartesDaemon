@@ -1,0 +1,5 @@
+[Desktop Entry]
+Type=Application
+Exec=xinit VirtualBox --startvm replaceme --fullscreen
+Name=replaceme
+Comment=This is the xsession for replaceme
