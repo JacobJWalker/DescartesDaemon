@@ -35,8 +35,8 @@ auth  --useshadow  --enablemd5
 network --bootproto=dhcp --device=eth0
 #Firewall configuration
 firewall --disabled 
-#X Window System configuration information
-xconfig --depth=16 --resolution=800x600 --startxonboot
+#Do not configure the X Window System
+skipx
 
 
 
