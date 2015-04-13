@@ -5,7 +5,7 @@ Descartes' Daemon
 
 Descartes' Daemon is an emulated imaging solution for organizations who have a need to have many systems setup with identical software, but run on top of many different types of hardware. It accomplishes this goal by having a modified lightweight form of Ubuntu which runs VirtualBox which in turn runs the main (guest) operating system, thus in essence Descartes' Daemon acts as middleware between the hardware and the guest operating system - or, as our motto says, "the ultimate hardware abstraction layer".
 
-Brought to you by the [Descartes' Daemon development team](http://vubuntubox.org/wiki/index.php?title=VubuntuBox_Development_Team).
+Brought to you by the [Descartes' Daemon development team](https://github.com/JacobJWalker/DescartesDaemon/graphs/contributors).
 
 ### How-To Make a Descartes' Daemon CD ###
 
