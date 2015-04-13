@@ -1,7 +1,7 @@
 Descartes' Daemon
 =================
 
-[![GitHub issues](https://img.shields.io/github/issues/JacobJWalker/VubuntuBox.svg)](https://github.com/JacobJWalker/VubuntuBox/issues)
+[![GitHub issues](https://img.shields.io/github/issues/JacobJWalker/DescartesDaemon.svg)](https://github.com/JacobJWalker/VubuntuBox/issues)
 
 Descartes' Daemon is an emulated imaging solution for organizations who have a need to have many systems setup with identical software, but run on top of many different types of hardware. It accomplishes this goal by having a modified lightweight form of Ubuntu which runs VirtualBox which in turn runs the main (guest) operating system, thus in essence Descartes' Daemon acts as middleware between the hardware and the guest operating system - or, as our motto says, "the ultimate hardware abstraction layer".
 
