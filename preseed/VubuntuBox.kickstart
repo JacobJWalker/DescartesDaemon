@@ -64,19 +64,19 @@ mkdir fakevar
 
 # Pre-Set Variables to Customize for Specific Organizations
 # Example data shown below
-# echo 'VubuntuBox' > /variables/VubAdminPasswd
-# echo 'hccts' > /variables/GuestOSHostname
-# echo 'http://vubuntubox.org/FreeDos_1.1.ova' > /variables/VirtualImageURL
-# echo 'labassist' > /variables/VirtualImageURLUser
-# echo 'Gr8Minds' > /variables/VirtualImageURLPasswd
+# echo 'DescartesDaemon' > /variables/AdminPasswd
+# echo 'orgname' > /variables/GuestOSHostname
+# echo 'http://example.org/location/to.ova' > /variables/VirtualImageURL
+# echo 'username' > /variables/VirtualImageURLUser
+# echo 'password' > /variables/VirtualImageURLPasswd
 # echo '80' > /variables/percentram
 
 # Get variables that will be used later in the %post script
 
-############################################ GET VUBADMIN PASSWORD ##################################################
+############################################ GET admin PASSWORD ##################################################
 
-VubAdminPasswd="incorrect"
-while [  "$VubAdminPasswd" != "$VubAdminPasswd2" ]; do    
+AdminPasswd="incorrect"
+while [  "$AdminPasswd" != "$AdminPasswd2" ]; do    
 
  ###### THIS IS FOR PASSWORD ONE ######
  
@@ -86,11 +86,11 @@ while [  "$VubAdminPasswd" != "$VubAdminPasswd2" ]; do
  dialog --title "Admin Password" \
  --clear \
  --insecure \
- --passwordbox "Enter your password for the admin account (named vubadmin)" 10 30 2> $data
+ --passwordbox "Enter your password for the admin account (named admin)" 10 30 2> $data
  ret=$?
  case $ret in
    0)
-     VubAdminPasswd="$(cat $data)";;
+     AdminPasswd="$(cat $data)";;
    1)
      shutdown;;
    255)
@@ -104,22 +104,22 @@ while [  "$VubAdminPasswd" != "$VubAdminPasswd2" ]; do
  dialog --title "Confirm Admin Password" \
  --clear \
  --insecure \
- --passwordbox "Please reenter your password for the admin account (named vubadmin) to confirm the password" 10 30 2> $sata
+ --passwordbox "Please reenter your password for the admin account (named admin) to confirm the password" 10 30 2> $sata
  ret=$?
  case $ret in
    0)
-     VubAdminPasswd2="$(cat $sata)";;
+     AdminPasswd2="$(cat $sata)";;
    1)
      shutdown;;
    255)
 	 [ -s $sata ] &&  cat $sata || echo "ESC pressed." & shutdown;;
  esac
- if [ "$VubAdminPasswd" != "$VubAdminPasswd2" ];then
+ if [ "$AdminPasswd" != "$AdminPasswd2" ];then
      dialog --title "Password Incorrect" --backtitle "Unmatching Passwords\
      Tutorial" --msgbox "I'm sorry, but your passwords do not match.\
      Please hit any button to try again." 9 50
  else
-   echo $VubAdminPasswd > /variables/VubAdminPasswd
+   echo $AdminPasswd > /variables/AdminPasswd
  fi
 done
 
@@ -132,7 +132,7 @@ trap "rm -f $hostnmfile" 0 1 2 5 15
 dialog --title "Guest OS Hostname" --clear \
         --inputbox "This will also be used in the Host OS hostname, \n
 where it will have the same name,\n
-with '-vub' added as a suffix" 16 51 2> $hostnmfile
+with '-guest' added as a suffix" 16 51 2> $hostnmfile
 retval=$?
 case $retval in
   0)
@@ -184,7 +184,7 @@ while [ $NumberOfVMs -gt 0 ];do
    urlova=/fakevar/urlova
    trap "rm -f $urlova" 0 1 2 5 15
    dialog --title "Virtual Machine OVA URL for VM `printf %04g $NumberOfVMs`" --clear \
-     --inputbox "VubuntuBox will download a virtual image after installing itself.\n
+     --inputbox "Descartes' Daemon will download a virtual image after installing itself.\n
      It can use http, https, ftp, or smb (windows file sharing)\n
      It will use either wget or smbget.  Read their documentation for more info.\n
      Enter the full URL for VM `printf %04g $NumberOfVMs` (only use integers)" 16 51 2> $urlova
@@ -394,7 +394,7 @@ mkdir tempvars
 
 # Import Variables
 export GuestOSHostname=`cat /variables/GuestOSHostname`
-export VubAdminPasswd=`cat /variables/VubAdminPasswd`
+export AdminPasswd=`cat /variables/AdminPasswd`
 export NumberOfVMs=`cat /variables/NumberOfVMs`
 
 
@@ -427,11 +427,11 @@ done
 
 
 # Add Users
-# Adds vubdmin User
-# Adds vubdmin to sudoer
-adduser --disabled-password --gecos "VirtualBox Admin" vubadmin
-echo "vubadmin:$VubAdminPasswd" | chpasswd
-usermod -a -G sudo vubadmin
+# Adds admin User
+# Adds admin to sudoer
+adduser --disabled-password --gecos "VirtualBox Admin" admin
+echo "admin:$AdminPasswd" | chpasswd
+usermod -a -G sudo admin
 
 # Adds the GuestOS User
 adduser --disabled-password --gecos "Guest OS" guestos
@@ -569,7 +569,7 @@ done
 su -c 'VBoxManage setextradata global GUI/Input/MachineShortcuts "TakeScreenshot=None,MouseIntegration=None,TypeCAD=None,TypeCABS=None,Pause=None,Reset=None,SaveState=None,Shutdown=None,PowerOff=None,Close=None,FullscreenMode=None,SeamlessMode=None,ScaleMode=None,WindowAdjust=None,PopupMenu=None, SettingsDialog=None,InformationDialog=None,NetworkAdaptersDailog=None,SharedFoldersDialog=None,InstallGuestAdditions=None"' guestos
 
 # Fixes USB Issue
-adduser vubadmin vboxusers
+adduser admin vboxusers
 adduser guestos vboxusers
 
 # Copy VirtualBox XSession
