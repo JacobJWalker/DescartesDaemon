@@ -459,6 +459,9 @@ sed -i 's/getty -8 38400/mingetty --autologin guestos/g' /etc/init/tty1.conf
 apt-get install jwm -y
 apt-get install gkrellm -y
  
+# Removes JWM from CDM menu
+rm /usr/share/xsessions/Jwm.desktop
+
 # Installs CDM
 apt-get install dialog
 wget https://github.com/ghost1227/cdm/zipball/master -O cdm-master.zip
