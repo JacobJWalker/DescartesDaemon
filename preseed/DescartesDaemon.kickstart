@@ -441,7 +441,7 @@ passwd guestos -d
 
 # Autologin to console
 sudo apt-get install mingetty -y
-sed -i 's/getty 38400/mingetty --autologin guestos/g' /etc/init/tty1.conf
+sed -i 's/getty -8 38400/mingetty --autologin guestos/g' /etc/init/tty1.conf
 
 # Installs jwm
 apt-get install jwm -y
