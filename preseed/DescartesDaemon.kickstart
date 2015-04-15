@@ -590,6 +590,9 @@ export NumberOfVMs=`cat /variables/NumberOfVMs`
 sed -i "s/replaceme/$NumberOfVMs/g" /usr/bin/vbox-automount-usb
 chmod +x /usr/bin/vbox-automount-usb
 
+#Fixes X11 not working issue
+sed -i '/allowed_users=console/c\allowed_users=anybody' /etc/X11/Xwrapper.config
+
 rm -rf /tempvars/
 
 # Start a %post interactive shell (Comment/Uncomment and/or move as needed for debugging)
