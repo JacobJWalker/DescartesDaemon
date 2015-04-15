@@ -336,21 +336,33 @@ done
 
 ############################################ Confirms that the user knows that the disk is going to get wiped with this installation ############################################
 
-echo 'WARNING!!! WARNING!!! WARNING!!!'
-echo 'WARNING! THE EXISTING DATA IN THIS HARDDISK WILL BE OVERWRITTEN!'
-echo 'ALL EXISTING DATA WILL BE LOST'
-echo
-read -p "Are you sure you want to continue? ? (y/n) " -n 1 REPLY
-echo
-if [[ "$REPLY" != "y" ]]; then
-    shutdown      
-fi
-echo
-read -p "Let me ask you again, Are you sure you want to continue? (y/n) " -n 1 REPLY
-echo
-if [[ "$REPLY" != "y" ]]; then
-    shutdown      
-fi
+dialog --title "DATA LOSS" \
+--backtitle "THIS WILL ERASE HARDDISK" \
+--yesno "THE EXISTING DATA IN THIS HARDDISK WILL BE OVERWRITTEN!
+ALL EXISTING DATA WILL BE LOST 
+Are you sure you want to continue?" 7 60
+
+response=$?
+case $response in
+   0) : ;;
+   1) shutdown;;
+   255) shutdown;;
+esac
+
+############################################ Reconfirms that the user knows that the disk is going to get wiped with this installation ############################################
+
+dialog --title "DATA LOSS" \
+--backtitle "THIS WILL ERASE HARDDISK" \
+--yesno "KEEP IN MIND YOUR HARDDISK
+AND ALL EXISTING DATA WILL BE LOST 
+Let me ask you again, Are you sure you want to continue?" 7 60
+
+response=$?
+case $response in
+   0) : ;;
+   1) shutdown;;
+   255) shutdown;;
+esac
 
 # Start a interactive shell (Comment/Uncomment and/or move as needed for debugging)
 #/bin/ash
@@ -592,6 +604,9 @@ chmod +x /usr/bin/vbox-automount-usb
 
 #Fixes X11 not working issue
 sed -i '/allowed_users=console/c\allowed_users=anybody' /etc/X11/Xwrapper.config
+
+# Changes hostname
+sudo hostname $GuestOSHostname
 
 rm -rf /tempvars/
 
