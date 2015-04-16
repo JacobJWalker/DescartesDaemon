@@ -455,15 +455,18 @@ passwd guestos -d
 sudo apt-get install mingetty -y
 sed -i 's/getty -8 38400/mingetty --autologin guestos/g' /etc/init/tty1.conf
 
+# Install X
+sudo apt-get install xorg xterm -y
+
 # Installs jwm
-apt-get install jwm -y
-apt-get install gkrellm -y
+apt-get install jwm menu -y
  
 # Removes JWM from CDM menu
 rm /usr/share/xsessions/Jwm.desktop
 
 # Installs CDM
 apt-get install dialog
+apt-get install unzip zip -y
 wget https://github.com/ghost1227/cdm/zipball/master -O cdm-master.zip
 unzip cdm-master.zip
 cd ghost*
@@ -477,16 +480,6 @@ cp /media/cdrom/pool/config_files/guestos/.bash_login /home/guestos/
 
 #CDM Config File
 cp /media/cdrom/pool/config_files/etc/cdmrc /etc/
-
-
-
-# ---------------------------------------------TEMP FOR LUBUNTU BASE-------------------------------------------------------------
-apt-get remove --purge abiword abiword-common abiword-plugin-grammar abiword-plugin-mathview ace-of-penguins audacious audacious-plugins audacious-plugins-data chromium-browser chromium-browser-l10n chromium-codecs-ffmpeg leafpad lubuntu-artwork lubuntu-artwork-12-10 lubuntu-core lubuntu-default-settings lubuntu-desktop lubuntu-software-center openbox pidgin pidgin-data pidgin-libnotify pidgin-microblog synaptic transmission xscreensaver xscreensaver-data -y
-apt-get autoremove -y
-sudo apt-get install xorg -y
-# -------------------------------------------------------------------------------------------------------------------------------
-
-
 
 # Install VirtualBox from its Repository
 echo 'deb http://download.virtualbox.org/virtualbox/debian trusty contrib' >> /etc/apt/sources.list
@@ -609,7 +602,7 @@ chmod +x /usr/bin/vbox-automount-usb
 sed -i '/allowed_users=console/c\allowed_users=anybody' /etc/X11/Xwrapper.config
 
 # Changes hostname
-sudo hostname $GuestOSHostname
+hostname $GuestOSHostname #DOES NOTHING!!! 
 
 rm -rf /tempvars/
 
