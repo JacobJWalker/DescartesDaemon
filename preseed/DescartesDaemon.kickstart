@@ -603,6 +603,8 @@ sed -i '/allowed_users=console/c\allowed_users=anybody' /etc/X11/Xwrapper.config
 
 # Changes hostname
 hostname $GuestOSHostname #DOES NOTHING!!! 
+echo "$GuestOSHostname" > /etc/hostname 
+sed -i "2s/.*/127.0.1.1		$GuestOSHostname/" /etc/hosts
 
 rm -rf /tempvars/
 
