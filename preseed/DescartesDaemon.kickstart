@@ -129,10 +129,9 @@ done
 
 hostnmfile=/fakevar/hostnmfile
 trap "rm -f $hostnmfile" 0 1 2 5 15
-dialog --title "Guest OS Hostname" --clear \
-        --inputbox "This will also be used in the Host OS hostname, \n
-where it will have the same name,\n
-with '-guest' added as a suffix" 16 51 2> $hostnmfile
+dialog --title "Host Hostname" --clear \
+        --inputbox "This will set the Host OS hostname,\
+to be shown on the network." 16 51 2> $hostnmfile
 retval=$?
 case $retval in
   0)
@@ -154,9 +153,9 @@ esac
 vmnum=/fakevar/vmnum
 trap "rm -f $vmnum" 0 1 2 5 15
 dialog --title "Number of Virtual Machines" --clear \
-        --inputbox "How many virtual machines would you\n
-Like to have on the system?\n
-Don't worry, details about the\n
+        --inputbox "How many virtual machines would you\
+Like to have on the system?\
+Don't worry, details about the\
 virtual machines will come next." 16 51 2> $vmnum
 
 retval=$?
@@ -184,9 +183,9 @@ while [ $NumberOfVMs -gt 0 ];do
    urlova=/fakevar/urlova
    trap "rm -f $urlova" 0 1 2 5 15
    dialog --title "Virtual Machine OVA URL for VM `printf %04g $NumberOfVMs`" --clear \
-     --inputbox "Descartes' Daemon will download a virtual image after installing itself.\n
-     It can use http, https, ftp, or smb (windows file sharing)\n
-     It will use either wget or smbget.  Read their documentation for more info.\n
+     --inputbox "Descartes' Daemon will download a virtual image after installing itself.\
+     It can use http, https, ftp, or smb (windows file sharing)\
+     It will use either wget or smbget.  Read their documentation for more info.\
      Enter the full URL for VM `printf %04g $NumberOfVMs` (only use integers)" 16 51 2> $urlova
    retval=$?
    case $retval in
@@ -215,9 +214,9 @@ while [ $NumberOfVMs -gt 0 ];do
 	   userurl=/fakevar/userurl
 	   trap "rm -f $userurl" 0 1 2 5 15
 	   dialog --title "Virtual Machine OVA URL for VM `printf %04g $NumberOfVMs`" --clear \
-	     --inputbox "Please enter your username for the samba server./n
-	   If you wish to user guest instead,/n
-	   you may leave this blank and hit enter./n" 16 51 2> $userurl
+	     --inputbox "Please enter your username for the samba server.\
+	   If you wish to user guest instead,\
+	   you may leave this blank and hit enter." 16 51 2> $userurl
 	   retval=$?
 	   case $retval in
 	     0)
@@ -227,66 +226,63 @@ while [ $NumberOfVMs -gt 0 ];do
 	     1)
 	       shutdown;;
 	     255)
-	       if test -s $userurl ; then
-	         cat $userurl
-	       else
-	         echo "ESC pressed."
-	       fi
 	       shutdown
 	       ;;
 	    esac
 
 	 ###### IF EMPTY - IGNORE INPUTTING THE PASSWORD ######
 
-	 if [ -z "$VAR" ]; then
+	 if [ -z "$userurl" ]; then
 	 :
 	 else
 
 	  ########### PASSWORD TIIIIIIIMMMMEEEEEE ##########
 
 	   ###### THIS IS FOR PASSWORD ONE ######
-	  
-	   touch passwdurl
-	   passwdurl=/fakevar/passwdurl
-	   trap "rm -f $passwdurl" 0 1 2 5 15
-	   dialog --title "SMB Password" \
-	   --clear \
-	   --insecure \
-	   --passwordbox "Enter your password for $VirtualImageURLUser" 10 30 2> $passwdurl
-	   ret=$?
-	   case $ret in
-	     0)
-	       VirtualImageURLPasswd="$(cat $passwdurl)";;
-	     1)
-	       shutdown;;
-	     255)
-	     [ -s $passwdurl ] &&  cat $passwdurl || echo "ESC pressed." & shutdown;;
-	   esac
+	    VirtualImageURLPasswd="incorrect"
+	    while [  "$VirtualImageURLPasswd" != "$VirtualImageURLPasswd2" ]; do   
+		   touch passwdurl
+		   passwdurl=/fakevar/passwdurl
+		   trap "rm -f $passwdurl" 0 1 2 5 15
+		   dialog --title "SMB Password" \
+		   --clear \
+		   --insecure \
+		   --passwordbox "Enter your password for $VirtualImageURLUser" 10 30 2> $passwdurl
+		   ret=$?
+		   case $ret in
+		     0)
+		       VirtualImageURLPasswd="$(cat $passwdurl)";;
+		     1)
+		       shutdown;;
+		     255)
+		     [ -s $passwdurl ] &&  cat $passwdurl || echo "ESC pressed." & shutdown;;
+		   esac
 
-	   ###### THIS IS FOR PASSWORD TWO ######
+		   ###### THIS IS FOR PASSWORD TWO ######
 
-	   passwsurl=/fakevar/passwsurl
-	   trap "rm -f $passwsurl" 0 1 2 5 15
-	   dialog --title "Confirm Admin Password" \
-	   --clear \
-	   --insecure \
-	   --passwordbox "Please reenter your password for $VirtualImageURLUser to confirm the password" 10 30 2> $passwsurl
-	   ret=$?
-	   case $ret in
-	     0)
-	       VirtualImageURLPasswd2="$(cat $passwsurl)";;
-	     1)
-	       shutdown;;
-	     255)
-	     [ -s $passwsurl ] &&  cat $passwsurl || echo "ESC pressed." & shutdown;;
-	   esac
-	   if [ "$VirtualImageURLPasswd" != "$VirtualImageURLPasswd2" ];then
-	       dialog --title "Password Incorrect" --backtitle "Unmatching Passwords\
-	       Tutorial" --msgbox "I'm sorry, but your passwords do not match.\
-	       Please hit any button to try again." 9 50
-	   else
-	     bash /cdrom/pool/config_files/declare.sh VirtualImageURLPasswd $VirtualImageURLPasswd $NumberOfVMs
-	   fi
+		   passwsurl=/fakevar/passwsurl
+		   trap "rm -f $passwsurl" 0 1 2 5 15
+		   dialog --title "Confirm Admin Password" \
+		   --clear \
+		   --insecure \
+		   --passwordbox "Please reenter your password for $VirtualImageURLUser to confirm the password" 10 30 2> $passwsurl
+		   ret=$?
+		   case $ret in
+		     0)
+		       VirtualImageURLPasswd2="$(cat $passwsurl)";;
+		     1)
+		       shutdown;;
+		     255)
+		     [ -s $passwsurl ] &&  cat $passwsurl || echo "ESC pressed." & shutdown;;
+		   esac
+		   if [ "$VirtualImageURLPasswd" != "$VirtualImageURLPasswd2" ];then
+		       dialog --title "Password Incorrect" --backtitle "Unmatching Passwords\
+		       Tutorial" --msgbox "I'm sorry, but your passwords do not match.\
+		       Please hit any button to try again." 9 50
+		   else
+		     bash /cdrom/pool/config_files/declare.sh VirtualImageURLPasswd $VirtualImageURLPasswd $NumberOfVMs
+		   fi
+	    done
 	 fi
 	  ;;
 	*) 
@@ -303,7 +299,7 @@ while [ $NumberOfVMs -gt 0 ];do
    ramallio=/fakevar/ramallio
    trap "rm -f $ramallio" 0 1 2 5 15
    dialog --title "RAM Alliocation for VM `printf %04g $NumberOfVMs`" --clear \
-     --inputbox "Enter percentage of RAM to allot VM \n
+     --inputbox "Enter percentage of RAM to allot VM\
    `printf %04g $NumberOfVMs` (only use integers)" 16 51 2> $ramallio
    retval=$?
    case $retval in
