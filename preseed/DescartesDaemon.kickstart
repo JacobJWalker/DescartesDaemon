@@ -500,8 +500,8 @@ apt-get install smbclient -y
 export NumberOfVMs=`cat /variables/NumberOfVMs`
 while [  $NumberOfVMs -gt 0 ];do
 	VirtualImageURL=`cat /tempvars/"VirtualImageURL_$(printf %04g $NumberOfVMs)"`
-	VirtualImageURLUser=`cat /tempvars/"VirtualImageURL_$(printf %04g $NumberOfVMs)"`
-	VirtualImageURLPasswd=`cat /tempvars/"VirtualImageURL_$(printf %04g $NumberOfVMs)"`
+	VirtualImageURLUser=`cat /tempvars/"VirtualImageURLUser_$(printf %04g $NumberOfVMs)"`
+	VirtualImageURLPasswd=`cat /tempvars/"VirtualImageURLPasswd_$(printf %04g $NumberOfVMs)"`
 	cd /usr/share/virtualbox
 	case $VirtualImageURL in
 	smb://*) 
