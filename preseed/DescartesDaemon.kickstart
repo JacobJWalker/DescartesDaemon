@@ -262,7 +262,7 @@ while [ $NumberOfVMs -gt 0 ];do
 
 		   passwsurl=/fakevar/passwsurl
 		   trap "rm -f $passwsurl" 0 1 2 5 15
-		   dialog --title "Confirm Admin Password" \
+		   dialog --title "Confirm SMB Password" \
 		   --clear \
 		   --insecure \
 		   --passwordbox "Please reenter your password for $VirtualImageURLUser to confirm the password" 10 30 2> $passwsurl
