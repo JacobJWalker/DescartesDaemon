@@ -317,7 +317,7 @@ while [ $NumberOfVMs -gt 0 ];do
        ;;
    esac
 
-   if [ "$percentram" -lt 75 ]; then
+   if [ "$percentram" -lt 76 ]; then
         percentokay="okay"
         bash /cdrom/pool/config_files/declare.sh percentram $percentram $NumberOfVMs
      else
@@ -375,6 +375,9 @@ umount /variables
 # Automatically erases part of existing operating system, so that it avoids the confirmation dialogue about the drive being mounted
 # See https://bugs.launchpad.net/ubuntu/+source/debian-installer/+bug/1370315
 dd if=/dev/zero of=/dev/sda bs=1M count=10
+
+# Unmounts SDA
+umount /dev/sda
 
 %end
 
@@ -556,6 +559,14 @@ while [  $NumberOfVMs -gt 0 ];do
 			:
 			;;
 	esac
+NumberOfVMs=$((NumberOfVMs - 1))
+done
+
+#Sets VM CPU to Max
+export NumberOfVMs=`cat /variables/NumberOfVMs`
+while [  $NumberOfVMs -gt 0 ];do
+cputoset=`nproc`
+VBoxManage modifyvm guestos_$(printf %04g $NumberOfVMs) --cpus $cputoset
 NumberOfVMs=$((NumberOfVMs - 1))
 done
 
