@@ -516,21 +516,13 @@ while [  $NumberOfVMs -gt 0 ];do
 	esac
 	mv *.ova /usr/share/virtualbox/"guestos_$(printf %04g $NumberOfVMs)".ova
 	cputoset=`nproc`
-	su -c "VBoxManage import /usr/share/virtualbox/guestos_$(printf %04g $NumberOfVMs).ova --vsys 0 --cpus $cputoset --vmname guestos_$(printf %04g $NumberOfVMs)" guestos
-	rm /usr/share/virtualbox/guestos_$(printf %04g $NumberOfVMs).ova
-NumberOfVMs=$((NumberOfVMs - 1))
-done
-
-# Sets memory size of VM 
-# Does math to figure out guestosram from percentram
-export NumberOfVMs=`cat /variables/NumberOfVMs`
-while [  $NumberOfVMs -gt 0 ];do
 	percentram=`cat /tempvars/"percentram_$(printf %04g $NumberOfVMs)"`
 	ram=`free -mt | grep Mem | awk '{print $2}'`
 	ramvartransfer=`expr $ram \\* $percentram`
 	guestosram=`expr $ramvartransfer / 100`
-	su -c "VBoxManage modifyvm guestos_$(printf %04g $NumberOfVMs) --memory $guestosram" guestos
-    NumberOfVMs=$((NumberOfVMs - 1))
+	su -c "VBoxManage import /usr/share/virtualbox/guestos_$(printf %04g $NumberOfVMs).ova --vsys 0 --cpus $cputoset --memory $guestosram --vmname guestos_$(printf %04g $NumberOfVMs)" guestos
+	rm /usr/share/virtualbox/guestos_$(printf %04g $NumberOfVMs).ova
+NumberOfVMs=$((NumberOfVMs - 1))
 done
 
 # Temporary kludge. This program does not work if WiFi and Ethernet are both being used
