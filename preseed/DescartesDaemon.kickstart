@@ -515,7 +515,8 @@ while [  $NumberOfVMs -gt 0 ];do
 		;;
 	esac
 	mv *.ova /usr/share/virtualbox/"guestos_$(printf %04g $NumberOfVMs)".ova
-	su -c "VBoxManage import /usr/share/virtualbox/guestos_$(printf %04g $NumberOfVMs).ova --vsys 0 --vmname guestos_$(printf %04g $NumberOfVMs)" guestos
+	cputoset=`nproc`
+	su -c "VBoxManage import /usr/share/virtualbox/guestos_$(printf %04g $NumberOfVMs).ova --vsys 0 --cpus $cputoset --vmname guestos_$(printf %04g $NumberOfVMs)" guestos
 	rm /usr/share/virtualbox/guestos_$(printf %04g $NumberOfVMs).ova
 NumberOfVMs=$((NumberOfVMs - 1))
 done
@@ -559,14 +560,6 @@ while [  $NumberOfVMs -gt 0 ];do
 			:
 			;;
 	esac
-NumberOfVMs=$((NumberOfVMs - 1))
-done
-
-#Sets VM CPU to Max
-export NumberOfVMs=`cat /variables/NumberOfVMs`
-while [  $NumberOfVMs -gt 0 ];do
-cputoset=`nproc`
-VBoxManage modifyvm guestos_$(printf %04g $NumberOfVMs) --cpus $cputoset
 NumberOfVMs=$((NumberOfVMs - 1))
 done
 
