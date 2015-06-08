@@ -471,8 +471,7 @@ unzip cdm-master.zip
 cd ghost*
 ./install.sh
 cd ..
-rm -rf ghost*
-rm -rf cdm-master.zip
+rm -rf ghost* cdm-master.zip
 
 # Launches CDM upon login (which will be automatic)
 cp /media/cdrom/pool/config_files/guestos/.bash_login /home/guestos/
@@ -596,6 +595,15 @@ sed -i '/allowed_users=console/c\allowed_users=anybody' /etc/X11/Xwrapper.config
 # Change hostname
 echo "$GuestOSHostname" > /etc/hostname 
 sed -i "2s/.*/127.0.1.1		$GuestOSHostname/" /etc/hosts
+
+# Save First Boot Snapshot
+export NumberOfVMs=`cat /variables/NumberOfVMs`
+while [  $NumberOfVMs -gt 0 ];do
+su -c 'VBoxManage startvm GuestOS_$(printf %04g $NumberOfVMs) --type headless' guestos
+su -c 'VBoxManage snapshot GuestOS_$(printf %04g $NumberOfVMs) take firstboot' guestos
+su -c 'VBoxManage controlvm GuestOS_$(printf %04g $NumberOfVMs) poweroff' guestos
+NumberOfVMs=$((NumberOfVMs - 1))
+done
 
 rm -rf /tempvars/
 
