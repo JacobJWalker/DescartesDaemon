@@ -482,7 +482,7 @@ cp /media/cdrom/pool/config_files/etc/cdmrc /etc/
 echo 'deb http://download.virtualbox.org/virtualbox/debian trusty contrib' >> /etc/apt/sources.list
 wget -q https://www.virtualbox.org/download/oracle_vbox.asc -O- | apt-key add -
 apt-get update
-apt-get install virtualbox-4.3 -y
+apt-get install virtualbox-5.0 -y
 #dpkg -i /media/cdrom/pool/config_files/deb/virtualbox_5.0.6.deb
 #apt-get install -f
 
