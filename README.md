@@ -9,11 +9,11 @@ Brought to you by the [Descartes' Daemon development team](https://github.com/Ja
 
 ### How-To Make a Descartes' Daemon CD ###
 
-1. Download Lubuntu Alternative Installer ISO
+1. [Download Ubuntu Server i386 ISO](http://releases.ubuntu.com/14.04/)
 
-2. Extract Lubuntu ISO into a folder, we have our folder named DescartesDaemon_Files
+2. Extract Ubuntu Server ISO into a folder, we have our folder named DescartesDaemon_Files
 
-3. Copy DescartesDaemon modified files into the extracted Lubuntu ISO folder and overwrite all files
+3. Copy DescartesDaemon modified files into the extracted  Ubuntu Server ISO folder and overwrite all files
 
 4. Make a new ISO by running 
             
