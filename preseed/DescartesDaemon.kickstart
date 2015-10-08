@@ -478,22 +478,34 @@ cp /media/cdrom/pool/config_files/guestos/.bash_login /home/guestos/
 #CDM Config File
 cp /media/cdrom/pool/config_files/etc/cdmrc /etc/
 
-# Install VirtualBox from its Repository
-echo 'deb http://download.virtualbox.org/virtualbox/debian trusty contrib' >> /etc/apt/sources.list
-wget -q https://www.virtualbox.org/download/oracle_vbox.asc -O- | apt-key add -
-apt-get update
-apt-get install virtualbox-5.0 -y
-#dpkg -i /media/cdrom/pool/config_files/deb/virtualbox_5.0.6.deb
-#apt-get install -f
+################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
 
-# Fixes Kernel driver not installed problem
-# From http://www.binarytides.com/fix-vbox-kernel-driver-error/
-apt-get install build-essential module-assistant -y
-m-a prepare
-/etc/init.d/vboxdrv setup
 
-# Sets default VM folder to obscure location for security
-su -c 'VBoxManage setproperty machinefolder $HOME/.GuestOSVMs/' guestos
+
+tar xvf nameof.ova
+qemu-img convert -O qcow2 *.vmdk guestos0001.qcow2
+rm *.vmdk
+
+
+# This is the only section of code that I know for certain will run. The rest will need to be modified or changed for QEMU/KVM rather than VirtualBox
+
+
+apt-get install virt-viewer
+virt-install \
+    --connect=qemu:///system \
+    --name=guestos0001 \
+    --ram=1024 \
+    --vcpus=4 \
+    --sound \
+    --check-cpu \
+    --disk /path/to/disk/guestos0001.qcow2,format=qcow2 \
+    --import
+virsh shutdown guestos0001
+virsh destroy  guestos0001
+
+
+
+################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
 
 # Installs smbclient for smbget
 apt-get install smbclient -y
