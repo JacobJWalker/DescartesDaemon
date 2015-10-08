@@ -483,7 +483,7 @@ echo 'deb http://download.virtualbox.org/virtualbox/debian trusty contrib' >> /e
 wget -q https://www.virtualbox.org/download/oracle_vbox.asc -O- | apt-key add -
 apt-get update
 apt-get install virtualbox-4.3 -y
-#dpkg -i /media/cdrom/pool/config_files/deb/virtualbox_4.3.deb
+#dpkg -i /media/cdrom/pool/config_files/deb/virtualbox_5.0.6.deb
 #apt-get install -f
 
 # Fixes Kernel driver not installed problem
