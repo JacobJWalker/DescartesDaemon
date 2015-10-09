@@ -482,9 +482,9 @@ cp /media/cdrom/pool/config_files/etc/cdmrc /etc/
 
 
 
-tar xvf nameof.ova
+tar xvf *.ova
 qemu-img convert -O qcow2 *.vmdk guestos0001.qcow2
-rm *.vmdk
+rm *.vmdk *.ova
 
 
 # This is the only section of code that I know for certain will run. The rest will need to be modified or changed for QEMU/KVM rather than VirtualBox
