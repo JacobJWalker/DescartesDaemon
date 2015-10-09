@@ -478,37 +478,54 @@ cp /media/cdrom/pool/config_files/guestos/.bash_login /home/guestos/
 #CDM Config File
 cp /media/cdrom/pool/config_files/etc/cdmrc /etc/
 
-################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
-
-
+####################################################################################################################################################
+########################## This is the code that is being modified for use in the kickstart script #################################################
+####################################################################################################################################################
 
 tar xvf *.ova
 qemu-img convert -O qcow2 *.vmdk guestos0001.qcow2
 rm *.vmdk *.ova
 
+# Install all that is needed
+apt-get install -y qemu-kvm libvirt-bin ubuntu-vm-builder \
+	bridge-utils virt-manager qemu-system virt-viewer \
+	qemu qemu-common qemu-utils \
+	spice-client libusb-1.0-0 libusb-1.0-0-dev \
+	libspice-protocol-dev libspice-server-dev \
+	libspice-client-glib-2.0-dev \
+	libspice-client-gtk-2.0-dev \
+	libspice-client-gtk-3.0-dev \
+	python-spice-client-gtk spice-client-gtk
 
-# This is the only section of code that I know for certain will run. The rest will need to be modified or changed for QEMU/KVM rather than VirtualBox
+# Allows guestos to run virtd
+adduser guestos libvirtd
 
-
-apt-get install virt-viewer
+# Make VM
+# QCOW2 file below does not work with * replacement.
 virt-install \
     --connect=qemu:///system \
     --name=guestos0001 \
     --ram=1024 \
     --vcpus=4 \
     --sound \
+    --graphics=spice
+    --video qxl --channel spicevmc
     --check-cpu \
+    --noreboot \
     --disk guestos0001.qcow2,format=qcow2 \
     --import
-virsh shutdown guestos0001
-virsh destroy  guestos0001
+
+# Dump XML to /tmp to allow changes to be made
 virsh dumpxml guestos0001 > /tmp/guestos0001.xml
 
 # Make changes to guestos0001.xml
 
+# Reimport the XML to the VM
 virsh define /tmp/guestos0001.xml
 
-################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
+####################################################################################################################################################
+####################################################################################################################################################
+####################################################################################################################################################
 
 # Installs smbclient for smbget
 apt-get install smbclient -y
