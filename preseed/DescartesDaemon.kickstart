@@ -500,6 +500,22 @@ apt-get install -y qemu-kvm libvirt-bin ubuntu-vm-builder \
 # Allows guestos to run virtd
 adduser guestos libvirtd
 
+# Forces Spicey to autoredirect USB into the Guest VM
+mkdir -p /root/.config/spicy/
+cat > /root/.config/spicy/settings <<EOF
+[general]
+grab-keyboard=true
+grab-mouse=true
+auto-clipboard=false
+
+resize-guest=false
+auto-usbredir=false
+
+[ui]
+toolbar=true
+statusbar=true
+EOF
+
 # Make VM
 # QCOW2 file below does not work with * replacement.
 virt-install \
