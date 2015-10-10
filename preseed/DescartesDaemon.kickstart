@@ -447,8 +447,6 @@ usermod -a -G sudo admin
 adduser --disabled-password --gecos "Guest OS" guestos
 passwd guestos -d
 
-# THIS NEEDS TO BE MOVED ABOUT
-
 # Autologin to console
 sudo apt-get install mingetty -y
 sed -i 's/getty -8 38400/mingetty --autologin guestos/g' /etc/init/tty1.conf
@@ -478,15 +476,7 @@ cp /media/cdrom/pool/config_files/guestos/.bash_login /home/guestos/
 #CDM Config File
 cp /media/cdrom/pool/config_files/etc/cdmrc /etc/
 
-####################################################################################################################################################
-########################## This is the code that is being modified for use in the kickstart script #################################################
-####################################################################################################################################################
-
-tar xvf *.ova
-qemu-img convert -O qcow2 *.vmdk guestos0001.qcow2
-rm *.vmdk *.ova
-
-# Install all that is needed
+# Install all that is needed for QEMU and KVM virtualization
 apt-get install -y qemu-kvm libvirt-bin ubuntu-vm-builder \
 	bridge-utils virt-manager qemu-system virt-viewer \
 	qemu qemu-common qemu-utils \
@@ -508,40 +498,13 @@ grab-keyboard=true
 grab-mouse=true
 auto-clipboard=false
 
-resize-guest=false
-auto-usbredir=false
+resize-guest=true
+auto-usbredir=true
 
 [ui]
 toolbar=true
 statusbar=true
 EOF
-
-# Make VM
-# QCOW2 file below does not work with * replacement.
-virt-install \
-    --connect=qemu:///system \
-    --name=guestos0001 \
-    --ram=1024 \
-    --vcpus=4 \
-    --sound \
-    --graphics=spice
-    --video qxl --channel spicevmc
-    --check-cpu \
-    --noreboot \
-    --disk guestos0001.qcow2,format=qcow2 \
-    --import
-
-# Dump XML to /tmp to allow changes to be made
-virsh dumpxml guestos0001 > /tmp/guestos0001.xml
-
-# Make changes to guestos0001.xml
-
-# Reimport the XML to the VM
-virsh define /tmp/guestos0001.xml
-
-####################################################################################################################################################
-####################################################################################################################################################
-####################################################################################################################################################
 
 # Installs smbclient for smbget
 apt-get install smbclient -y
@@ -563,65 +526,50 @@ while [  $NumberOfVMs -gt 0 ];do
 		wget $VirtualImageURL
 		;;
 	esac
-	mv *.ova /usr/share/virtualbox/"guestos_$(printf %04g $NumberOfVMs)".ova
+	mv *.ova /tmp/"guestos_$(printf %04g $NumberOfVMs)".ova
+	
+	# Turns the OVA into a QCOW2 file and moves it into the right location
+	cd /tmp
+	tar xvf *.ova
+	qemu-img convert -O qcow2 *.vmdk guestos_$(printf %04g $NumberOfVMs).qcow2
+	rm *.vmdk *.ova
+	mkdir /home/guestos/VMs/
+	mv guestos_$(printf %04g $NumberOfVMs).qcow2 /home/guestos/VMs/
+
+	# Sets variables for later importation
 	cputoset=`nproc`
 	percentram=`cat /tempvars/"percentram_$(printf %04g $NumberOfVMs)"`
 	ram=`free -mt | grep Mem | awk '{print $2}'`
 	ramvartransfer=`expr $ram \\* $percentram`
 	guestosram=`expr $ramvartransfer / 100`
-	su -c "VBoxManage import /usr/share/virtualbox/guestos_$(printf %04g $NumberOfVMs).ova --vsys 0 --cpus $cputoset --memory $guestosram --vmname guestos_$(printf %04g $NumberOfVMs)" guestos
+	
+	# Imports QCOW2 file to the VM
+	su -c 'virt-install \
+    --connect=qemu:///system \
+    --name=guestos_$(printf %04g $NumberOfVMs) \
+    --ram=$guestosram \
+    --vcpus=$cputoset \
+    --sound \
+    --graphics=spice
+    --video qxl --channel spicevmc
+    --check-cpu \
+    --noreboot \
+    --disk /home/guestos/VMs/guestos_$(printf %04g $NumberOfVMs).qcow2,format=qcow2 \
+    --import' guestos
+
+	# Dump XML to /tmp to allow changes to be made
+	su -c 'virsh dumpxml guestos_$(printf %04g $NumberOfVMs) > /tmp/guestos0001.xml' guestos
+
+	# Make changes to guestos_$(printf %04g $NumberOfVMs).xml
+
+	# Reimport the XML to the VM
+	su -c 'virsh define /tmp/guestos_$(printf %04g $NumberOfVMs).xml' guestos
+
 	rm /usr/share/virtualbox/guestos_$(printf %04g $NumberOfVMs).ova
 NumberOfVMs=$((NumberOfVMs - 1))
 done
 
-# Temporary kludge. This program does not work if WiFi and Ethernet are both being used
-export NumberOfVMs=`cat /variables/NumberOfVMs`
-while [  $NumberOfVMs -gt 0 ];do
-	networktype=`VBoxManage showvminfo guestos_$(printf %04g $NumberOfVMs) | grep "NIC 1:" | awk '{ print $6 }' | tr -d ','`
-	case $networktype in
-		"NAT")
-			:
-			;;
-		"Bridged")
-			vboxmanage list bridgedifs | grep -w "Name" | awk '{ print $2 }' | while read output;
-			do
-			intertube=0
-			echo "begin ping"
-			ping -c 1 -I $output google.com
-			if [ $? -eq  0 ]; then
-			     ping success
-					 su -c "VBoxManage modifyvm guestos_$(printf %04g $NumberOfVMs) --nic1 bridged" guestos
-					 su -c "VBoxManage modifyvm guestos_$(printf %04g $NumberOfVMs) --bridgeadapter1 $output" guestos
-			else
-				 echo "fail ping"           
-			fi
-			done
-			;;
-		*)
-			:
-			;;
-	esac
-NumberOfVMs=$((NumberOfVMs - 1))
-done
-
-# Turns off VirtualBox warning messages
-su -c 'VBoxManage setextradata global GUI/SuppressMessages remindAboutAutoCapture,confirmInputCapture,remindAboutMouseIntegration,remindAboutWrongColorDepth,showRuntimeError.warning.HostAudioNotResponding,remindAboutGoingSeamless,remindAboutInputCapture,remindAboutGoingFullscreen,remindAboutMouseIntegrationOff,confirmGoingSeamless,remindAboutPausedVMInput,confirmVMReset,confirmGoingFullscreen' guestos
-
-# Turns off VirtualBox Mini Toolbar
-export NumberOfVMs=`cat /variables/NumberOfVMs`
-while [  $NumberOfVMs -gt 0 ];do
-	su -c "VBoxManage setextradata guestos_$(printf %04g $NumberOfVMs) GUI/ShowMiniToolBar no" guestos
-NumberOfVMs=$((NumberOfVMs - 1))
-done
-
-# Turns off VirtualBox menus, shortcut keys, etc.
-su -c 'VBoxManage setextradata global GUI/Input/MachineShortcuts "TakeScreenshot=None,MouseIntegration=None,TypeCAD=None,TypeCABS=None,Pause=None,Reset=None,SaveState=None,Shutdown=None,PowerOff=None,Close=None,FullscreenMode=None,SeamlessMode=None,ScaleMode=None,WindowAdjust=None,PopupMenu=None, SettingsDialog=None,InformationDialog=None,NetworkAdaptersDailog=None,SharedFoldersDialog=None,InstallGuestAdditions=None"' guestos
-
-# Fixes USB Issue
-adduser admin vboxusers
-adduser guestos vboxusers
-
-# Copy VirtualBox XSession
+# Copy QEMU XSession
 export NumberOfVMs=`cat /variables/NumberOfVMs`
 while [  $NumberOfVMs -gt 0 ];do
 cp /media/cdrom/pool/config_files/xsessions/GuestOS.desktop /usr/share/xsessions/"GuestOS_$(printf %04g $NumberOfVMs)".desktop
@@ -631,13 +579,6 @@ done
 
 # Copy chvt 1 command
 cp /media/cdrom/pool/config_files/etc/rc.local /etc/
-
-# Copy Automount UDev Rules
-cp /media/cdrom/pool/config_files/udev/10-usbmount.rules /etc/udev/rules.d/
-cp /media/cdrom/pool/config_files/usrbin/vbox-automount-usb /usr/bin/
-export NumberOfVMs=`cat /variables/NumberOfVMs`
-sed -i "s/replaceme/$NumberOfVMs/g" /usr/bin/vbox-automount-usb
-chmod +x /usr/bin/vbox-automount-usb
 
 #Fixes X11 not working issue
 sed -i '/allowed_users=console/c\allowed_users=anybody' /etc/X11/Xwrapper.config
@@ -649,9 +590,7 @@ sed -i "2s/.*/127.0.1.1		$GuestOSHostname/" /etc/hosts
 # Save First Boot Snapshot
 export NumberOfVMs=`cat /variables/NumberOfVMs`
 while [  $NumberOfVMs -gt 0 ];do
-su -c 'VBoxManage startvm GuestOS_$(printf %04g $NumberOfVMs) --type headless' guestos
-su -c 'VBoxManage snapshot GuestOS_$(printf %04g $NumberOfVMs) take firstboot' guestos
-su -c 'VBoxManage controlvm GuestOS_$(printf %04g $NumberOfVMs) poweroff' guestos
+####################################################### FIND COMMANDS TO BOOT UP THE VM AND SAVE A SNAPSHOT, THEN SHUTDOWN ###################################################
 NumberOfVMs=$((NumberOfVMs - 1))
 done
 
