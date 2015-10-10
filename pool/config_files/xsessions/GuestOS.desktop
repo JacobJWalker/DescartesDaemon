@@ -1,5 +1,5 @@
 [Desktop Entry]
 Type=Application
-Exec=VirtualBox --startvm replaceme --fullscreen
+Exec=virsh start replaceme && sudo spicy -h localhost -p 5900 -f 
 Name=replaceme
 Comment=This is the xsession for replaceme
