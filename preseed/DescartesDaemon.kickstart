@@ -59,7 +59,7 @@ cp --recursive /cdrom/pool/binary-i386/* /
 mkfs -q /dev/ram1 8192
 mkdir -p /variables
 mount /dev/ram1 /variables
-mkdir fakevar
+mkdir -p /fakevar
 
 # Pre-Set Variables to Customize for Specific Organizations
 # Example data shown below
@@ -550,8 +550,8 @@ while [  $NumberOfVMs -gt 0 ];do
     --ram=$guestosram \
     --vcpus=$cputoset \
     --sound \
-    --graphics=spice
-    --video qxl --channel spicevmc
+    --graphics=spice \
+    --video qxl --channel spicevmc \
     --check-cpu \
     --noreboot \
     --disk /home/guestos/VMs/guestos_$(printf %04g $NumberOfVMs).qcow2,format=qcow2 \
