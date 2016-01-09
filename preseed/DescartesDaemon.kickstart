@@ -439,7 +439,7 @@ done
 # Add Users
 # Adds admin User
 # Adds admin to sudoer
-adduser --disabled-password --gecos "VirtualBox Admin" admin
+adduser --disabled-password --gecos "Admin" admin
 echo "admin:$AdminPasswd" | chpasswd
 usermod -a -G sudo admin
 
@@ -485,7 +485,7 @@ apt-get install -y qemu-kvm libvirt-bin ubuntu-vm-builder \
 	libspice-client-glib-2.0-dev \
 	libspice-client-gtk-2.0-dev \
 	libspice-client-gtk-3.0-dev \
-	python-spice-client-gtk spice-client-gtk
+	python-spice-client-gtk spice-client-gtk virtinst
 
 # Allows guestos to run virtd
 adduser guestos libvirtd
@@ -517,7 +517,6 @@ while [  $NumberOfVMs -gt 0 ];do
 	VirtualImageURL=`cat /tempvars/"VirtualImageURL_$(printf %04g $NumberOfVMs)"`
 	VirtualImageURLUser=`cat /tempvars/"VirtualImageURLUser_$(printf %04g $NumberOfVMs)"`
 	VirtualImageURLPasswd=`cat /tempvars/"VirtualImageURLPasswd_$(printf %04g $NumberOfVMs)"`
-	cd /usr/share/virtualbox
 	case $VirtualImageURL in
 	smb://*) 
 		smbget $VirtualImageURL --username=$VirtualImageURLUser --password=$VirtualImageURLPasswd
@@ -536,15 +535,18 @@ while [  $NumberOfVMs -gt 0 ];do
 	mkdir /home/guestos/VMs/
 	mv guestos_$(printf %04g $NumberOfVMs).qcow2 /home/guestos/VMs/
 
+	
+	# Imports QCOW2 file to the VM
+	su guestos <<'EOF'
 	# Sets variables for later importation
+	export NumberOfVMs=`cat /variables/NumberOfVMs`
 	cputoset=`nproc`
 	percentram=`cat /tempvars/"percentram_$(printf %04g $NumberOfVMs)"`
 	ram=`free -mt | grep Mem | awk '{print $2}'`
 	ramvartransfer=`expr $ram \\* $percentram`
 	guestosram=`expr $ramvartransfer / 100`
-	
-	# Imports QCOW2 file to the VM
-	su -c 'virt-install \
+
+	virt-install \
     --connect=qemu:///system \
     --name=guestos_$(printf %04g $NumberOfVMs) \
     --ram=$guestosram \
@@ -555,17 +557,16 @@ while [  $NumberOfVMs -gt 0 ];do
     --check-cpu \
     --noreboot \
     --disk /home/guestos/VMs/guestos_$(printf %04g $NumberOfVMs).qcow2,format=qcow2 \
-    --import' guestos
+    --import
+    EOF
 
 	# Dump XML to /tmp to allow changes to be made
-	su -c 'virsh dumpxml guestos_$(printf %04g $NumberOfVMs) > /tmp/guestos0001.xml' guestos
+	su -c 'virsh dumpxml guestos_$(printf %04g $NumberOfVMs) > /tmp/guestos_$(printf %04g $NumberOfVMs).xml' guestos
 
 	# Make changes to guestos_$(printf %04g $NumberOfVMs).xml
 
 	# Reimport the XML to the VM
 	su -c 'virsh define /tmp/guestos_$(printf %04g $NumberOfVMs).xml' guestos
-
-	rm /usr/share/virtualbox/guestos_$(printf %04g $NumberOfVMs).ova
 NumberOfVMs=$((NumberOfVMs - 1))
 done
 
@@ -609,8 +610,8 @@ rm -rf /tempvars/
 # Change back to Virtual Terminal 1 where the Install has been running
 # From http://hintshop.ludvig.co.nz/show/interactive-pre-post-install-scripts-redhat-kickstart/
 # Special thanks to:
-# VirtualBox team - for their amazing VirtaulBox tool
 # Kickstart Configurator - for getting us started with this file
+# All the amazing people behind QEMU/other virtualization technologies that we use
 chvt 1
 exec < /dev/tty1 > /dev/tty1 2> /dev/tty1
 
