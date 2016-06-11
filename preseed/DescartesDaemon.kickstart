@@ -68,7 +68,8 @@ mkdir fakevar
 # echo 'http://example.org/location/to.ova' > /variables/VirtualImageURL
 # echo 'username' > /variables/VirtualImageURLUser
 # echo 'password' > /variables/VirtualImageURLPasswd
-# echo '80' > /variables/percentram
+# echo '75' > /variables/percentram
+# echo 'y' > /variables/InstallExt
 
 # Get variables that will be used later in the %post script
 
@@ -329,6 +330,26 @@ percentokay="notokay"
 NumberOfVMs=$((NumberOfVMs - 1))
 done
 
+############################################ Asks if the user would like to install Virtualbox Extension Pack ############################################
+
+dialog --title "VirtualBox Extension Pack" \
+--backtitle "Install to get USB autoredirection working" \
+--yesno "Do you want to install the VirtualBox Extension Pack? Only select yes if you are an individual, testing out, or are part of a educational organization" 7 60
+response=$?
+case $response in
+   0) 
+   	 InstallExt=y
+   	 ;;
+   1) 
+   	 InstallExt=n
+   	 ;;
+   255) 
+   	 InstallExt=n
+   	 ;;
+esac
+echo $InstallExt > /variables/InstallExt
+
+
 ############################################ Confirms that the user knows that the disk is going to get wiped with this installation ############################################
 
 dialog --title "DATA LOSS" \
@@ -482,8 +503,8 @@ cp /media/cdrom/pool/config_files/etc/cdmrc /etc/
 echo 'deb http://download.virtualbox.org/virtualbox/debian trusty contrib' >> /etc/apt/sources.list
 wget -q https://www.virtualbox.org/download/oracle_vbox.asc -O- | apt-key add -
 apt-get update
-apt-get install virtualbox-4.3 -y
-#dpkg -i /media/cdrom/pool/config_files/deb/virtualbox_4.3.deb
+apt-get install virtualbox-5.0 -y
+#dpkg -i /media/cdrom/pool/config_files/deb/virtualbox_5.0.deb
 #apt-get install -f
 
 # Fixes Kernel driver not installed problem
@@ -491,6 +512,17 @@ apt-get install virtualbox-4.3 -y
 apt-get install build-essential module-assistant -y
 m-a prepare
 /etc/init.d/vboxdrv setup
+
+# Install Guest Additions to Virtualbox
+InstallExt=`cat /variables/InstallExt`
+if [[ $InstallExt = y ]]; then
+	version=$(vboxmanage -v)
+	var1=$(echo $version | cut -d 'r' -f 1)
+	var2=$(echo $version | cut -d 'r' -f 2)
+	file="Oracle_VM_VirtualBox_Extension_Pack-$var1-$var2.vbox-extpack"
+	wget http://download.virtualbox.org/virtualbox/$var1/$file -O /tmp/$file
+	VBoxManage extpack install /tmp/$file --replace
+fi
 
 # Sets default VM folder to obscure location for security
 su -c 'VBoxManage setproperty machinefolder $HOME/.GuestOSVMs/' guestos
@@ -523,6 +555,13 @@ while [  $NumberOfVMs -gt 0 ];do
 	guestosram=`expr $ramvartransfer / 100`
 	su -c "VBoxManage import /usr/share/virtualbox/guestos_$(printf %04g $NumberOfVMs).ova --vsys 0 --cpus $cputoset --memory $guestosram --vmname guestos_$(printf %04g $NumberOfVMs)" guestos
 	rm /usr/share/virtualbox/guestos_$(printf %04g $NumberOfVMs).ova
+NumberOfVMs=$((NumberOfVMs - 1))
+done
+
+# Adds blank USB filter
+export NumberOfVMs=`cat /variables/NumberOfVMs`
+while [  $NumberOfVMs -gt 0 ];do
+	su -c "VBoxManage usbfilter add 0 --target guestos_$(printf %04g $NumberOfVMs) --name 'All USBs'" guestos
 NumberOfVMs=$((NumberOfVMs - 1))
 done
 
